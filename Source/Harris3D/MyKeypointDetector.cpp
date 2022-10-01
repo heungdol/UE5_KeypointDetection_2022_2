@@ -57,8 +57,6 @@ FVector AMyKeypointDetector::GetCurrentVertexNormalByIndex(int i)
 }
 
 
-
-
 void AMyKeypointDetector::UpdateSelectedVertexLocation()
 {
 	FTimerHandle debugDrawWaitHandle;
