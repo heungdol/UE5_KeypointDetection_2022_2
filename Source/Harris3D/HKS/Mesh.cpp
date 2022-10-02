@@ -75,10 +75,10 @@ bool Mesh::GetIsEnableModel()
 
 FVector Mesh::GetVertexLocByIndex(int ii)
 {
-    if (vertices.size() <= ii)
+    if (verts.size() <= ii)
         return FVector (0, 0, 0);
 
-    return FVector(vertices[ii].position[0], vertices[ii].position[1], vertices[ii].position[2]);
+    return verts[ii];
 }
 
 FVector Mesh::GetVertexNorByIndex(int ii)

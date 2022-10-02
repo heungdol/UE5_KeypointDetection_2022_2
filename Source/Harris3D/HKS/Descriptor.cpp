@@ -93,7 +93,7 @@ void Descriptor::computeEig(int K)
     int _K = (v / 100) * 100 / 2;
     K = std::min (_K, K);
     
-    Spectra::SymGEigsSolver<double,
+    /*Spectra::SymGEigsSolver<double,
     Spectra::SMALLEST_MAGN,
     Spectra::SparseSymMatProd<double>,
     Spectra::SparseCholesky<double>,
@@ -105,6 +105,22 @@ void Descriptor::computeEig(int K)
     if (geigs.info() == Spectra::SUCCESSFUL) {
          evals = geigs.eigenvalues();
          evecs = geigs.eigenvectors();
+            
+    } else {
+        std::cout << "Eigen computation failed" << std::endl;
+    }*/
+
+    Spectra::SymGEigsSolver<
+    Spectra::SparseSymMatProd<double>,
+    Spectra::SparseCholesky<double>,
+    Spectra::GEigsMode::Cholesky> geigs(opW, opA, K, 2*K);
+        
+    geigs.init();
+    geigs.compute();
+        
+    if (geigs.info() == Spectra::CompInfo::Successful) {
+        evals = geigs.eigenvalues();
+        evecs = geigs.eigenvectors();
             
     } else {
         std::cout << "Eigen computation failed" << std::endl;

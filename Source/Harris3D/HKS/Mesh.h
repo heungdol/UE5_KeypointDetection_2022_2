@@ -29,8 +29,8 @@ public:
 
     std::vector<int> overlappingVert;
     std::vector<int> overlappingIndeices;
-    // std::vector <FVector> verts;
-     std::vector <FVector> nors;
+    std::vector <FVector> verts;
+    std::vector <FVector> nors;
     //int overlappingVertNum = 0;
     //std::vector<int> overlappingVert;
 
