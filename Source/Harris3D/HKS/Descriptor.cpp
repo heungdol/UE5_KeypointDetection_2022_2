@@ -2,10 +2,14 @@
 #include "Mesh.h"
 #include "MeshIO.h"
 #include "MultiresMesh.h"
+
 #include "../spectra/include/MatOp/SparseSymMatProd.h"
 #include "../spectra/include/MatOp/SparseCholesky.h"
 #include "../spectra/include/SymGEigsSolver.h"
+#include "../spectra/include/SymEigsShiftSolver.h"
 #include "../spectra/include/SymEigsBase.h"
+
+#include <ThirdParty/Eigen/Eigen/Eigenvalues>
 
 #define N 10
 
@@ -53,12 +57,12 @@ void buildAreaMatrix(Mesh *mesh, Eigen::SparseMatrix<double>& A, const double sc
     std::vector<Eigen::Triplet<double>> ATriplets;
     
     double sum = 0.0;
-    int index = 0;
+    //int index = 0;
     for (VertexCIter v = mesh->vertices.begin(); v != mesh->vertices.end(); v++)
         {
-        index++;
-        if ((index-1) != mesh->overlappingVert[index-1])
-            continue;
+        // index++;
+        // if ((index-1) != mesh->overlappingVert[index-1])
+        //     continue;
         
         double area = v->dualArea();
         ATriplets.push_back(Eigen::Triplet<double>(v->index, v->index, area));
@@ -71,7 +75,7 @@ void buildAreaMatrix(Mesh *mesh, Eigen::SparseMatrix<double>& A, const double sc
 
 void Descriptor::computeEig(int K)
 {
-    int v = (int)mesh->vertices.size();// - (int)mesh->overlappingVertNum;
+    int v = (int)mesh->vertices.size();
         
     // build adjacency operator
     Eigen::SparseMatrix<double> W(v, v);
@@ -79,12 +83,16 @@ void Descriptor::computeEig(int K)
         
     // build area matrix
     Eigen::SparseMatrix<double> A(v, v);
-    buildAreaMatrix(mesh, A, mesh->vertices.size());// - mesh->overlappingVertNum);
+    buildAreaMatrix(mesh, A, v);
         
-    // compute eigenvectors and eigenvalues
+    //compute eigenvectors and eigenvalues
     Spectra::SparseSymMatProd<double> opW(W);
     Spectra::SparseCholesky<double> opA(A);
-        
+
+    // K 재설정
+    int _K = (v / 100) * 100 / 2;
+    K = std::min (_K, K);
+    
     Spectra::SymGEigsSolver<double,
     Spectra::SMALLEST_MAGN,
     Spectra::SparseSymMatProd<double>,
@@ -95,8 +103,8 @@ void Descriptor::computeEig(int K)
     geigs.compute();
         
     if (geigs.info() == Spectra::SUCCESSFUL) {
-        evals = geigs.eigenvalues();
-        evecs = geigs.eigenvectors();
+         evals = geigs.eigenvalues();
+         evecs = geigs.eigenvectors();
             
     } else {
         std::cout << "Eigen computation failed" << std::endl;
@@ -105,58 +113,6 @@ void Descriptor::computeEig(int K)
     Eigen::MatrixXd err = W*evecs - A*evecs*evals.asDiagonal();
     std::cout << "||Lx - λAx||_inf = " << err.array().abs().maxCoeff() << std::endl;
     
-    // read eigvalues and eigenvectors from file
-    /*std::ifstream in(eigFilename);
-    
-    if (in.is_open()) {
-        MeshIO::readEig(in, evals, evecs);
-        in.close();
-        
-    } else {
-        int v = (int)mesh->vertices.size();
-        
-        // build adjacency operator
-        Eigen::SparseMatrix<double> W(v, v);
-        buildAdjacency(mesh, W);
-        
-        // build area matrix
-        Eigen::SparseMatrix<double> A(v, v);
-        buildAreaMatrix(mesh, A, mesh->vertices.size());
-        
-        // compute eigenvectors and eigenvalues
-        Spectra::SparseSymMatProd<double> opW(W);
-        Spectra::SparseCholesky<double> opA(A);
-        
-        Spectra::SymGEigsSolver<double,
-        Spectra::SMALLEST_MAGN,
-        Spectra::SparseSymMatProd<double>,
-        Spectra::SparseCholesky<double>,
-        Spectra::GEIGS_CHOLESKY> geigs(&opW, &opA, K, 2*K);
-        
-        geigs.init();
-        geigs.compute();
-        
-        if (geigs.info() == Spectra::SUCCESSFUL) {
-            evals = geigs.eigenvalues();
-            evecs = geigs.eigenvectors();
-            
-        } else {
-            std::cout << "Eigen computation failed" << std::endl;
-        }
-        
-        Eigen::MatrixXd err = W*evecs - A*evecs*evals.asDiagonal();
-        std::cout << "||Lx - λAx||_inf = " << err.array().abs().maxCoeff() << std::endl;
-        
-        // write eigvalues and eigenvectors to file
-        std::ofstream out(eigFilename);
-        if (out.is_open()) {
-            MeshIO::writeEig(out, evals, evecs);
-            out.close();
-        
-        } else {
-            std::cout << "Not writing eigenspectrum, no valid path specified" << std::endl;
-        }
-    }*/
 }
 
 void Descriptor::computeHks()
@@ -505,6 +461,9 @@ void Descriptor::compute(int descriptor)
     // compute descriptor
     switch (descriptor) {
         case HKS:
+            if (mesh == nullptr)
+                return;
+
             computeEig(500);//, eigFilename);
             computeHks();
             break;

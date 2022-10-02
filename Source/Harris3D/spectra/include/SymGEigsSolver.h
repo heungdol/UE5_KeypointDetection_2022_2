@@ -216,6 +216,8 @@ public:
 
     Matrix eigenvectors(int nvec) const
     {
+        std::cout << nvec << std::endl;
+        
         Matrix res = SymEigsBase<Scalar, SelectionRule, SymGEigsCholeskyOp<Scalar, OpType, BOpType>, IdentityBOp>::eigenvectors(nvec);
         Vector tmp(res.rows());
         const int nconv = res.cols();

@@ -149,9 +149,9 @@ bool MeshIO::read(const UStaticMeshComponent* sm, Mesh& mesh)
         data.positions.push_back(Eigen::Vector3d(verts[i].X, verts[i].Y, verts[i].Z));
         data.uvs.push_back(Eigen::Vector3d(uvs[i].X, uvs[i].Y,0));
         data.normals.push_back(Eigen::Vector3d(nors[i].X, nors[i].Y, nors[i].Z));
-
-        mesh.verts.push_back(verts[i]);
         mesh.nors.push_back(nors[i]);
+        
+        //mesh.verts.push_back(verts[i]);
     }
 
     // data.positions;

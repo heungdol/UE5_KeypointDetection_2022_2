@@ -92,7 +92,7 @@ void AMyKeypointDetector_HKS::CalculateHKS()
 	myDescriptor.compute(HKS);
 
 	for (VertexCIter v = myMesh.vertices.begin(); v != myMesh.vertices.end(); v++) {
-		if (v->isFeature(m_t))
+		if (v->isFeature(m_t, m_depth))
 			vrts_selected.push_back(v->index);
 	}
 

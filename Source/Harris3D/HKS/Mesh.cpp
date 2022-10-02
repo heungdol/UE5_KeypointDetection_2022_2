@@ -7,6 +7,17 @@ Mesh::Mesh()
 
 Mesh::Mesh(const UStaticMeshComponent* sm)
 {
+    halfEdges.clear();
+    vertices.clear();
+    edges.clear();
+    faces.clear ();
+    boundaries.clear();
+
+    overlappingVert.clear();
+    overlappingIndeices.clear();
+    // verts.clear();
+    // nors.clear();
+    
     isEnableModel = read (sm);
 }
 
@@ -64,10 +75,10 @@ bool Mesh::GetIsEnableModel()
 
 FVector Mesh::GetVertexLocByIndex(int ii)
 {
-    if (verts.size() <= ii)
+    if (vertices.size() <= ii)
         return FVector (0, 0, 0);
 
-    return verts[ii];
+    return FVector(vertices[ii].position[0], vertices[ii].position[1], vertices[ii].position[2]);
 }
 
 FVector Mesh::GetVertexNorByIndex(int ii)

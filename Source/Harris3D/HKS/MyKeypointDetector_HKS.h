@@ -36,4 +36,7 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Heat Kernel Signature")
 	int m_t = 5;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Heat Kernel Signature")
+	int m_depth = 5;
 };
