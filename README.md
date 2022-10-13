@@ -20,6 +20,9 @@ Various Game Character Animation using 3D Keypoint Detection: Focusing on Rock C
     - Procedural Animation: 횡단하는 암벽등반 모션 수정
     - Keypoint Dection 구현 및 추가
     - UV, Normal, Tangent 등의 불일치로 생기는 Vertex 중복 문제 해결
+- 기준 세우기
+    - 도메인 변경은 잘 진행되었으나 여기서 찾을 수 있는 가치 판단
+    - Keypoint Detection을 평가할 수 있는 기준 확립
     
 ## 앞으로 해야할 것
 - Keypoint Detection 구현
