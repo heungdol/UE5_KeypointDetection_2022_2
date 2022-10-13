@@ -31,3 +31,8 @@ Various Game Character Animation using 3D Keypoint Detection: Focusing on Rock C
 - 학부 졸업 논문 작성
     - 요약, 서론: 자료 조사 토대로 작성
     - 본론, 실험, 결과, 결론: 실험을 수행한 내용 토대로 작성
+
+### 출처
+- https://github.com/jhonmgb/HarrisInterestPoints3d
+- https://github.com/vamshikodipaka/Interest-Point-Detection-on-3D-Meshes
+- https://github.com/rohan-sawhney/correspondence 
