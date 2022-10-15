@@ -26,9 +26,7 @@ public:
     std::vector<Face> faces;
     std::vector<HalfEdgeIter> boundaries;
     std::string name;
-
-    std::vector<int> overlappingVert;
-    std::vector<int> overlappingIndeices;
+    
     std::vector <FVector> verts;
     std::vector <FVector> nors;
     //int overlappingVertNum = 0;

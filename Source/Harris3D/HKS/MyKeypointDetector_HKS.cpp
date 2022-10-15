@@ -50,8 +50,8 @@ void AMyKeypointDetector_HKS::BeginPlay()
 void AMyKeypointDetector_HKS::InitKeypointDetection()
 {
 	Super::InitKeypointDetection();
-	CalculateHKS ();
 	
+	CalculateHKS ();
 }
 
 void AMyKeypointDetector_HKS::InitSelectedVertexLocation()

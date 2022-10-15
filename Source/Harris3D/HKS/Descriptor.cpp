@@ -1,7 +1,7 @@
 #include "Descriptor.h"
-#include "Mesh.h"
-#include "MeshIO.h"
-#include "MultiresMesh.h"
+#include "../MyUtil/Mesh.h"
+#include "../MyUtil/MeshIO.h"
+#include "../MyUtil/MultiresMesh.h"
 
 #include "../spectra/include/MatOp/SparseSymMatProd.h"
 #include "../spectra/include/MatOp/SparseCholesky.h"

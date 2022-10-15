@@ -1,7 +1,7 @@
 #ifndef DESCRIPTOR_H
 #define DESCRIPTOR_H
 
-#include "Types.h"
+#include "../MyUtil/Types.h"
 #define HKS 0
 #define FAST_HKS 1
 #define WKS 2

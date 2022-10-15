@@ -28,6 +28,14 @@ public:
     
     // computes the cotan value
     double cotan() const;
+
+    // ================ mesh saliency ============================
+
+    // uv associated with vertex at tail of halfedge
+    Eigen::Vector3d uv;
+    
+    // normal associated with vertex at tail of halfedge
+    Eigen::Vector3d normal;
 };
 
 #endif

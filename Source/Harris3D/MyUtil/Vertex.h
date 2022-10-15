@@ -49,6 +49,24 @@ public:
     
     // checks if vertex is a feature
     bool isFeature(int t, int depth = 2) const;
+
+    // ============ mesh saliency =======================
+
+    // mean curvature
+    double meanCurvature;
+    
+    // saliency
+    double saliency;
+
+    // vertex distances
+    std::unordered_map<int, double> sqDistances;
+
+    // computes saliency given cut-off distance
+    double computeWeightedCurvature(VertexIter root, const double distance2);
+    
+    // checks is saliency is a maximum in local neighborhood
+    bool isPeakSaliency(VertexIter root,
+                        const std::vector<double>& levelSaliencies = std::vector<double>()) const;
 };
 
 #endif

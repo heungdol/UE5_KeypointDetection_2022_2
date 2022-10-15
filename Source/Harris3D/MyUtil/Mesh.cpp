@@ -13,10 +13,8 @@ Mesh::Mesh(const UStaticMeshComponent* sm)
     faces.clear ();
     boundaries.clear();
 
-    overlappingVert.clear();
-    overlappingIndeices.clear();
-    // verts.clear();
-    // nors.clear();
+    verts.clear();
+    nors.clear();
     
     isEnableModel = read (sm);
 }
