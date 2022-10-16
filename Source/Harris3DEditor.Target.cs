@@ -10,5 +10,7 @@ public class Harris3DEditorTarget : TargetRules
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.AddRange(new string[] { "Harris3D"});
+		
+		//ExtraModuleNames.Add("PCL");
 	}
 }

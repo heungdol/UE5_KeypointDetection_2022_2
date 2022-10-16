@@ -10,5 +10,7 @@ public class Harris3D : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay"});
+		
+		PublicDependencyModuleNames.Add("PCL");
 	}
 }

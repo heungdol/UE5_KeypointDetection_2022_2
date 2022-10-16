@@ -42,6 +42,10 @@
 		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true
+		},
+		{
+			"Name": "PointCloudRenderer",
+			"Enabled": false
 		}
 	]
 }
