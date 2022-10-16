@@ -11,7 +11,7 @@ THIRD_PARTY_INCLUDES_START
 
 THIRD_PARTY_INCLUDES_END
 
-//#include <pcl/keypoints/keypoint.h>
+#include <pcl/keypoints/keypoint.h>
 
 #include "CoreMinimal.h"
 #include "MyKeypointDetector_ISS.generated.h"
