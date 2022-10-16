@@ -1,17 +1,19 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-#pragma warning(disable: 4668)
+//#pragma warning(disable: 4668)
+
+
 
 #include "../MyKeypointDetector.h"
 
-THIRD_PARTY_INCLUDES_START
 
-#include <boost/thread/mutex.hpp>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
-THIRD_PARTY_INCLUDES_END
+//#include <pcl/search/kdtree.h>
 
-#include <pcl/keypoints/keypoint.h>
+//#include <pcl/keypoints/iss_3d.h>
 
 #include "CoreMinimal.h"
 #include "MyKeypointDetector_ISS.generated.h"
@@ -36,5 +38,23 @@ public:
 
 	virtual void InitSelectedVertexLocation () override;
 	virtual void UpdateSelectedVertexLocation () override;
+	
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_model_resolution = 1;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_saliencyRaidus = 1;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_gamma_21 = 0.975f;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_gamma_32 = 0.975f;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	int m_minNeighbors = 5;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	int m_numberOfThreads = 4;
 	
 };

@@ -37,9 +37,10 @@
  *
  */
 
-#ifndef PCL_FILTERS_PASSTHROUGH_H_
-#define PCL_FILTERS_PASSTHROUGH_H_
+#pragma once
 
+#include <cfloat> // for FLT_MIN, FLT_MAX
+#include <pcl/pcl_macros.h>
 #include <pcl/filters/filter_indices.h>
 
 namespace pcl
@@ -80,22 +81,22 @@ namespace pcl
   class PassThrough : public FilterIndices<PointT>
   {
     protected:
-      typedef typename FilterIndices<PointT>::PointCloud PointCloud;
-      typedef typename PointCloud::Ptr PointCloudPtr;
-      typedef typename PointCloud::ConstPtr PointCloudConstPtr;
-      typedef typename pcl::traits::fieldList<PointT>::type FieldList;
+      using PointCloud = typename FilterIndices<PointT>::PointCloud;
+      using PointCloudPtr = typename PointCloud::Ptr;
+      using PointCloudConstPtr = typename PointCloud::ConstPtr;
+      using FieldList = typename pcl::traits::fieldList<PointT>::type;
 
     public:
 
-      typedef boost::shared_ptr< PassThrough<PointT> > Ptr;
-      typedef boost::shared_ptr< const PassThrough<PointT> > ConstPtr;
+      using Ptr = shared_ptr<PassThrough<PointT> >;
+      using ConstPtr = shared_ptr<const PassThrough<PointT> >;
 
 
       /** \brief Constructor.
         * \param[in] extract_removed_indices Set to true if you want to be able to extract the indices of points being removed (default = false).
         */
       PassThrough (bool extract_removed_indices = false) :
-        FilterIndices<PointT>::FilterIndices (extract_removed_indices),
+        FilterIndices<PointT> (extract_removed_indices),
         filter_field_name_ (""),
         filter_limit_min_ (FLT_MIN),
         filter_limit_max_ (FLT_MAX)
@@ -117,7 +118,7 @@ namespace pcl
         * \return The name of the field that will be used for filtering.
         */
       inline std::string const
-      getFilterFieldName ()
+      getFilterFieldName () const
       {
         return (filter_field_name_);
       }
@@ -139,7 +140,7 @@ namespace pcl
         * \param[out] limit_max The maximum allowed field value (default = FLT_MAX).
         */
       inline void
-      getFilterLimits (float &limit_min, float &limit_max)
+      getFilterLimits (float &limit_min, float &limit_max) const
       {
         limit_min = filter_limit_min_;
         limit_max = filter_limit_max_;
@@ -150,28 +151,30 @@ namespace pcl
         * \warning This method will be removed in the future. Use setNegative() instead.
         * \param[in] limit_negative return data inside the interval (false) or outside (true)
         */
+      PCL_DEPRECATED(1, 13, "use inherited FilterIndices::setNegative() instead")
       inline void
       setFilterLimitsNegative (const bool limit_negative)
       {
         negative_ = limit_negative;
       }
 
-      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false). 
+      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false).
         * \warning This method will be removed in the future. Use getNegative() instead.
         * \param[out] limit_negative true if data \b outside the interval [min; max] is to be returned, false otherwise
         */
+      PCL_DEPRECATED(1, 13, "use inherited FilterIndices::getNegative() instead")
       inline void
-      getFilterLimitsNegative (bool &limit_negative)
+      getFilterLimitsNegative (bool &limit_negative) const
       {
         limit_negative = negative_;
       }
 
-      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false). 
+      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false).
         * \warning This method will be removed in the future. Use getNegative() instead.
         * \return true if data \b outside the interval [min; max] is to be returned, false otherwise
         */
       inline bool
-      getFilterLimitsNegative ()
+      getFilterLimitsNegative () const
       {
         return (negative_);
       }
@@ -187,17 +190,11 @@ namespace pcl
       using FilterIndices<PointT>::extract_removed_indices_;
       using FilterIndices<PointT>::removed_indices_;
 
-      /** \brief Filtered results are stored in a separate point cloud.
-        * \param[out] output The resultant point cloud.
-        */
-      void
-      applyFilter (PointCloud &output);
-
       /** \brief Filtered results are indexed by an indices array.
         * \param[out] indices The resultant indices.
         */
       void
-      applyFilter (std::vector<int> &indices)
+      applyFilter (Indices &indices) override
       {
         applyFilterIndices (indices);
       }
@@ -206,7 +203,7 @@ namespace pcl
         * \param[out] indices The resultant indices.
         */
       void
-      applyFilterIndices (std::vector<int> &indices);
+      applyFilterIndices (Indices &indices);
 
     private:
       /** \brief The name of the field that will be used for filtering. */
@@ -226,11 +223,11 @@ namespace pcl
     * \ingroup filters
     */
   template<>
-  class PCL_EXPORTS PassThrough<pcl::PCLPointCloud2> : public Filter<pcl::PCLPointCloud2>
+  class PCL_EXPORTS PassThrough<pcl::PCLPointCloud2> : public FilterIndices<pcl::PCLPointCloud2>
   {
-    typedef pcl::PCLPointCloud2 PCLPointCloud2;
-    typedef PCLPointCloud2::Ptr PCLPointCloud2Ptr;
-    typedef PCLPointCloud2::ConstPtr PCLPointCloud2ConstPtr;
+    using PCLPointCloud2 = pcl::PCLPointCloud2;
+    using PCLPointCloud2Ptr = PCLPointCloud2::Ptr;
+    using PCLPointCloud2ConstPtr = PCLPointCloud2::ConstPtr;
 
     using Filter<pcl::PCLPointCloud2>::removed_indices_;
     using Filter<pcl::PCLPointCloud2>::extract_removed_indices_;
@@ -238,44 +235,10 @@ namespace pcl
     public:
       /** \brief Constructor. */
       PassThrough (bool extract_removed_indices = false) :
-        Filter<pcl::PCLPointCloud2>::Filter (extract_removed_indices), keep_organized_ (false),
-        user_filter_value_ (std::numeric_limits<float>::quiet_NaN ()),
-        filter_field_name_ (""), filter_limit_min_ (-FLT_MAX), filter_limit_max_ (FLT_MAX),
-        filter_limit_negative_ (false)
+        FilterIndices<pcl::PCLPointCloud2>::FilterIndices (extract_removed_indices),
+        filter_field_name_ (""), filter_limit_min_ (-FLT_MAX), filter_limit_max_ (FLT_MAX)
       {
         filter_name_ = "PassThrough";
-      }
-
-      /** \brief Set whether the filtered points should be kept and set to the
-        * value given through \a setUserFilterValue (default: NaN), or removed
-        * from the PointCloud, thus potentially breaking its organized
-        * structure. By default, points are removed.
-        *
-        * \param[in] val set to true whether the filtered points should be kept and
-        * set to a given user value (default: NaN)
-        */
-      inline void
-      setKeepOrganized (bool val)
-      {
-        keep_organized_ = val;
-      }
-
-      /** \brief Obtain the value of the internal \a keep_organized_ parameter. */
-      inline bool
-      getKeepOrganized ()
-      {
-        return (keep_organized_);
-      }
-
-      /** \brief Provide a value that the filtered points should be set to
-        * instead of removing them.  Used in conjunction with \a
-        * setKeepOrganized ().
-        * \param[in] val the user given value that the filtered point dimensions should be set to
-        */
-      inline void
-      setUserFilterValue (float val)
-      {
-        user_filter_value_ = val;
       }
 
       /** \brief Provide the name of the field to be used for filtering data. In conjunction with  \a setFilterLimits,
@@ -290,7 +253,7 @@ namespace pcl
 
       /** \brief Get the name of the field used for filtering. */
       inline std::string const
-      getFilterFieldName ()
+      getFilterFieldName () const
       {
         return (filter_field_name_);
       }
@@ -306,60 +269,25 @@ namespace pcl
         filter_limit_max_ = limit_max;
       }
 
-      /** \brief Get the field filter limits (min/max) set by the user. The default values are -FLT_MAX, FLT_MAX. 
+      /** \brief Get the field filter limits (min/max) set by the user. The default values are -FLT_MAX, FLT_MAX.
         * \param[out] limit_min the minimum allowed field value
         * \param[out] limit_max the maximum allowed field value
         */
       inline void
-      getFilterLimits (double &limit_min, double &limit_max)
+      getFilterLimits (double &limit_min, double &limit_max) const
       {
         limit_min = filter_limit_min_;
         limit_max = filter_limit_max_;
       }
 
-      /** \brief Set to true if we want to return the data outside the interval specified by setFilterLimits (min, max).
-        * Default: false.
-        * \param[in] limit_negative return data inside the interval (false) or outside (true)
-        */
-      inline void
-      setFilterLimitsNegative (const bool limit_negative)
-      {
-        filter_limit_negative_ = limit_negative;
-      }
-
-      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false). 
-        * \param[out] limit_negative true if data \b outside the interval [min; max] is to be returned, false otherwise
-        */
-      inline void
-      getFilterLimitsNegative (bool &limit_negative)
-      {
-        limit_negative = filter_limit_negative_;
-      }
-
-      /** \brief Get whether the data outside the interval (min/max) is to be returned (true) or inside (false). 
-        * \return true if data \b outside the interval [min; max] is to be returned, false otherwise
-        */
-      inline bool
-      getFilterLimitsNegative ()
-      {
-        return (filter_limit_negative_);
-      }
-
     protected:
       void
-      applyFilter (PCLPointCloud2 &output);
+      applyFilter (PCLPointCloud2 &output) override;
+
+      void
+      applyFilter (Indices &indices) override;
 
     private:
-      /** \brief Keep the structure of the data organized, by setting the
-        * filtered points to the a user given value (NaN by default). 
-        */
-      bool keep_organized_;
-
-      /** \brief User given value to be set to any filtered point. Casted to
-        * the correct field type. 
-        */
-      float user_filter_value_;
-
       /** \brief The desired user filter field name. */
       std::string filter_field_name_;
 
@@ -369,15 +297,9 @@ namespace pcl
       /** \brief The maximum allowed filter value a point will be considered from. */
       double filter_limit_max_;
 
-      /** \brief Set to true if we want to return the data outside (\a filter_limit_min_;\a filter_limit_max_). Default: false. */
-      bool filter_limit_negative_;
-
   };
 }
 
 #ifdef PCL_NO_PRECOMPILE
 #include <pcl/filters/impl/passthrough.hpp>
 #endif
-
-#endif  // PCL_FILTERS_PASSTHROUGH_H_
-

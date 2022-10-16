@@ -39,62 +39,15 @@
 #define PCL_FILTERS_IMPL_RANDOM_SAMPLE_H_
 
 #include <pcl/filters/random_sample.h>
-#include <pcl/common/io.h>
-#include <pcl/point_traits.h>
 
-
-///////////////////////////////////////////////////////////////////////////////
-template<typename PointT> void
-pcl::RandomSample<PointT>::applyFilter (PointCloud &output)
-{
-  std::vector<int> indices;
-  if (keep_organized_)
-  {
-    bool temp = extract_removed_indices_;
-    extract_removed_indices_ = true;
-    applyFilter (indices);
-    extract_removed_indices_ = temp;
-    copyPointCloud (*input_, output);
-    // Get X, Y, Z fields
-    std::vector<pcl::PCLPointField> fields;
-    pcl::getFields (*input_, fields);
-    std::vector<size_t> offsets;
-    for (size_t i = 0; i < fields.size (); ++i)
-    {
-      if (fields[i].name == "x" ||
-          fields[i].name == "y" ||
-          fields[i].name == "z")
-        offsets.push_back (fields[i].offset);
-    }
-    // For every "removed" point, set the x,y,z fields to user_filter_value_
-    const static float user_filter_value = user_filter_value_;
-    for (size_t rii = 0; rii < removed_indices_->size (); ++rii)
-    {
-      uint8_t* pt_data = reinterpret_cast<uint8_t*> (&output[(*removed_indices_)[rii]]);
-      for (size_t i = 0; i < offsets.size (); ++i)
-      {
-        memcpy (pt_data + offsets[i], &user_filter_value, sizeof (float));
-      }
-      if (!pcl_isfinite (user_filter_value_))
-        output.is_dense = false;
-    }
-  }
-  else
-  {
-    output.is_dense = true;
-    applyFilter (indices);
-    copyPointCloud (*input_, indices, output);
-  }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 template<typename PointT>
 void
-pcl::RandomSample<PointT>::applyFilter (std::vector<int> &indices)
+pcl::RandomSample<PointT>::applyFilter (Indices &indices)
 {
-  unsigned N = static_cast<unsigned> (indices_->size ());
-  
-  unsigned int sample_size = negative_ ? N - sample_ : sample_;
+  std::size_t N = indices_->size ();  
+  std::size_t sample_size = negative_ ? N - sample_ : sample_;
   // If sample size is 0 or if the sample size is greater then input cloud size
   //   then return all indices
   if (sample_size >= N)
@@ -105,49 +58,45 @@ pcl::RandomSample<PointT>::applyFilter (std::vector<int> &indices)
   else
   {
     // Resize output indices to sample size
-    indices.resize (static_cast<size_t> (sample_size));
+    indices.resize (sample_size);
     if (extract_removed_indices_)
-      removed_indices_->resize (static_cast<size_t> (N - sample_size));
+      removed_indices_->resize (N - sample_size);
 
     // Set random seed so derived indices are the same each time the filter runs
     std::srand (seed_);
 
-    // Algorithm A
-    unsigned top = N - sample_size;
-    unsigned i = 0;
-    unsigned index = 0;
+    // Algorithm S
+    std::size_t i = 0;
+    std::size_t index = 0;
     std::vector<bool> added;
     if (extract_removed_indices_)
       added.resize (indices_->size (), false);
-    for (size_t n = sample_size; n >= 2; n--)
+    std::size_t n = sample_size;
+    while (n > 0)
     {
-      float V = unifRand ();
-      unsigned S = 0;
-      float quot = static_cast<float> (top) / static_cast<float> (N);
-      while (quot > V)
+      // Step 1: [Generate U.] Generate a random variate U that is uniformly distributed between 0 and 1.
+      const float U = unifRand ();
+      // Step 2: [Test.] If N * U > n, go to Step 4. 
+      if ((N * U) <= n)
       {
-        S++;
-        top--;
-        N--;
-        quot = quot * static_cast<float> (top) / static_cast<float> (N);
+        // Step 3: [Select.] Select the next record in the file for the sample, and set n : = n - 1.
+        if (extract_removed_indices_)
+          added[index] = true;
+        indices[i++] = (*indices_)[index];
+        --n;
       }
-      index += S;
-      if (extract_removed_indices_)
-        added[index] = true;
-      indices[i++] = (*indices_)[index++];
-      N--;
+      // Step 4: [Don't select.] Skip over the next record (do not include it in the sample).      
+      // Set N : = N - 1.
+      --N;
+      ++index;
+      // If n > 0, then return to Step 1; otherwise, the sample is complete and the algorithm terminates.
     }
-
-    index += N * static_cast<unsigned> (unifRand ());
-    if (extract_removed_indices_)
-      added[index] = true;
-    indices[i++] = (*indices_)[index++];
 
     // Now populate removed_indices_ appropriately
     if (extract_removed_indices_)
     {
-      unsigned ri = 0;
-      for (size_t i = 0; i < added.size (); i++)
+      std::size_t ri = 0;
+      for (std::size_t i = 0; i < added.size (); i++)
       {
         if (!added[i])
         {
