@@ -105,11 +105,21 @@ namespace pcl
       using Keypoint<PointInT, PointOutT>::search_radius_;
       using Keypoint<PointInT, PointOutT>::search_parameter_;
       using Keypoint<PointInT, PointOutT>::keypoints_indices_;
-    
+
+      // ISSKeypoint3D (): salient_radius_(0), non_max_radius_(0), normal_radius_(0), border_radius_(0), gamma_21_(0),
+      //                   gamma_32_(0),
+      //                   third_eigen_value_(nullptr),
+      //                   edge_points_(nullptr),
+      //                   min_neighbors_(0),
+      //                   angle_threshold_(0),
+      //                   threads_(0)
+      // {
+      // }
+
       /** \brief Constructor.
         * \param[in] salient_radius the radius of the spherical neighborhood used to compute the scatter matrix.
         */
-      ISSKeypoint3D (double salient_radius = 0.0001)
+      ISSKeypoint3D (double salient_radius = 0.001)
       : salient_radius_ (salient_radius)
       , non_max_radius_ (0.0)
       , normal_radius_ (0.0)

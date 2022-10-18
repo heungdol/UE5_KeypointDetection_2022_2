@@ -8,12 +8,12 @@
 #include "../MyKeypointDetector.h"
 
 
-#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
+// #include <pcl/point_types.h>
+// #include <pcl/point_cloud.h>
+//
+// #include <pcl/search/kdtree.h>
 
-//#include <pcl/search/kdtree.h>
-
-//#include <pcl/keypoints/iss_3d.h>
+#include <pcl/keypoints/iss_3d.h>
 
 #include "CoreMinimal.h"
 #include "MyKeypointDetector_ISS.generated.h"

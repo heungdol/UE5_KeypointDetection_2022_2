@@ -184,10 +184,12 @@ public:
   bool
   operator==(const OctreeContainerBase& other) const override
   {
-    const OctreeContainerPointIndex* otherConDataT =
-        dynamic_cast<const OctreeContainerPointIndex*>(&other);
-
-    return (this->data_ == otherConDataT->data_);
+  	if (const OctreeContainerPointIndex* otherConDataT =
+		dynamic_cast<const OctreeContainerPointIndex*>(&other))
+  	{
+  		return (this->data_ == otherConDataT->data_);
+  	}
+  	return false;
   }
 
   /** \brief Add point index to container memory. This container stores a only a single
