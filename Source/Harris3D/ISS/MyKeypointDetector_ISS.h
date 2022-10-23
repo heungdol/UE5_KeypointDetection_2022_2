@@ -8,12 +8,13 @@
 #include "../MyKeypointDetector.h"
 
 
-// #include <pcl/point_types.h>
-// #include <pcl/point_cloud.h>
-//
-// #include <pcl/search/kdtree.h>
+#include <ThirdParty/Eigen/Eigen/Eigen>
+#include <ThirdParty/Eigen/Eigen/Core>
+#include <ThirdParty/Eigen/Eigen/Eigenvalues>
+#include <ThirdParty/Eigen/Eigen/Geometry>
+#include <ThirdParty/Eigen/Eigen/Sparse>
+#include "KDTreeFlann.h"
 
-#include <pcl/keypoints/iss_3d.h>
 
 #include "CoreMinimal.h"
 #include "MyKeypointDetector_ISS.generated.h"
@@ -56,5 +57,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
 	int m_numberOfThreads = 4;
-	
+
+	std::vector<int> ComputeISSKeypoints(const std::vector<Eigen::Vector3d> &input,
+												double salient_radius = 0.0,
+												double non_max_radius = 0.0,
+												double gamma_21 = 0.975,
+												double gamma_32 = 0.975,
+												int min_neighbors = 5);
 };
+

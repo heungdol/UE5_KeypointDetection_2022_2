@@ -11,6 +11,6 @@ public class Harris3D : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "HeadMountedDisplay"});
 		
-		PublicDependencyModuleNames.Add("PCL");
+		//PublicDependencyModuleNames.Add("PCL");
 	}
 }

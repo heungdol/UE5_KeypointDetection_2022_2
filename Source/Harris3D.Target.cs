@@ -11,6 +11,6 @@ public class Harris3DTarget : TargetRules
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		ExtraModuleNames.AddRange(new string[] { "Harris3D"});
 		
-		ExtraModuleNames.Add("PCL");
+		//ExtraModuleNames.Add("PCL");
 	}
 }
