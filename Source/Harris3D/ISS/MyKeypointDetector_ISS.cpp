@@ -72,13 +72,16 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
         return std::vector<int>{};
     }
 
-	Eigen::MatrixXd _input = Eigen::MatrixXd (3, input.size());
+	Eigen::MatrixXd _input = Eigen::MatrixXd::Zero (3, input.size());
 	// TODO vector vector3d -> vectorxd로 변환할 것
 	for (int _i = 0; _i < input.size(); _i++)
 	{
-		_input.setConstant(_i, 0, input[_i].x());
-		_input.setConstant(_i, 1, input[_i].y());
-		_input.setConstant(_i, 2, input[_i].z());
+		// _input.setConstant(0, _i, input[_i].x());
+		// _input.setConstant(1, _i, input[_i].y());
+		// _input.setConstant(2, _i, input[_i].z());
+		_input (0, _i) = input[_i][0];
+		_input (1, _i) = input[_i][1];
+		_input (2, _i) = input[_i][2];
 	}
 	
     KDTreeFlann kdtree(_input);
@@ -156,12 +159,7 @@ void AMyKeypointDetector_ISS::OnConstruction(const FTransform& Transform)
 		// 메쉬 판단
 		if (!m_pMeshCom)
 			return;
-
-		// 테스트
-		std::vector<int> keypointIndeices = std::vector<int>();
-		keypointIndeices = ComputeISSKeypoints(std::vector<Eigen::Vector3d>());
-
-
+		
 		// 콜리젼 설정
 		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
@@ -189,14 +187,100 @@ void AMyKeypointDetector_ISS::BeginPlay()
 void AMyKeypointDetector_ISS::InitKeypointDetection()
 {
 	Super::InitKeypointDetection();
+
+	meshData.indices.clear();
+	meshData.normals.clear();
+	meshData.positions.clear();
+	meshData.uvs.clear();
+
+	if (!MyUtil::ReadMeshWithoutOverwrap(m_pMeshCom, meshData))
+		return;
+		
+	// iss
+	vrts_selected = ComputeISSKeypoints(meshData.positions, m_saliencyRaidus, m_maxRadius, m_gamma_21, m_gamma_32, m_minNeighbors);
+
+	for (int ind : vrts_selected)
+	{
+		vrts_postSelected.Add(ind);
+	}
 }
 
 void AMyKeypointDetector_ISS::InitSelectedVertexLocation()
 {
 	Super::InitSelectedVertexLocation();
+
+	actorLocation = GetActorLocation();
+	actorScale = GetActorScale();
+	actorRotation = GetActorRotation();
+	
+	// 선택된 점 위치 확인
+	for (int i = 0; i < vrts_postSelected.Num(); i++)
+	{
+		FVector pos;
+		pos.X = meshData.positions[i][0];
+		pos.Y = meshData.positions[i][1];
+		pos.Z = meshData.positions[i][2];
+
+		FVector no;
+		no.X = meshData.normals[i][0];
+		no.Y = meshData.normals[i][1];
+		no.Z = meshData.normals[i][2];
+		
+		vrtLocs_postSelected.Add(pos);
+		currentVrtLocs_postSelected.Add(pos);
+		
+		vrtNors_postSelected.Add(no);
+		currentVrtNors_postSelected.Add(no);
+	}
+
+	for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
+	{
+		//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("OHa"));
+
+		FVector offset = vrtLocs_postSelected[i];
+		offset *= actorScale;
+		offset = actorRotation.RotateVector(offset);
+		
+		currentVrtLocs_postSelected [i] = actorLocation + offset;
+		currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
+	}
 }
 
 void AMyKeypointDetector_ISS::UpdateSelectedVertexLocation()
 {
 	Super::UpdateSelectedVertexLocation();
+
+	FTimerHandle debugDrawWaitHandle;
+	
+	float WaitTime = 0.1; //시간 설정
+	//bool  firstInit =  false;
+
+	if (GetWorld())
+		GetWorld()->GetTimerManager().SetTimer(debugDrawWaitHandle, FTimerDelegate::CreateLambda([&]()
+		{
+				for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
+				{
+					//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("OHa"));
+
+					FVector offset = vrtLocs_postSelected[i];
+					offset *= actorScale;
+					offset = actorRotation.RotateVector(offset);
+				
+					currentVrtLocs_postSelected [i] = actorLocation + offset;
+					currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
+
+					if (m_debugDraw == true)
+					{
+						DrawDebugLine(GetWorld()
+							, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
+							, FColorList::Red, false, 0.1, 0, 1);
+					}
+				}
+
+				actorLocation = GetActorLocation();
+				actorScale = GetActorScale();
+				actorRotation = GetActorRotation();
+
+			GetWorld()->GetTimerManager().ClearTimer(debugDrawWaitHandle);
+		}), WaitTime, true); //반복도 여기서 추가 변수를 선언해 설정가능
 }
