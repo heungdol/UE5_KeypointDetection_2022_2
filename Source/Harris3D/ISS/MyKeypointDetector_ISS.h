@@ -44,7 +44,7 @@ public:
 
 	// 메쉬 데이터
 	MeshData meshData;
-	
+
 	// UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
 	// double m_model_resolution = 1;
 
@@ -65,7 +65,8 @@ public:
 
 	// UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
 	// int m_numberOfThreads = 4;
-
+	
+	std::vector<double> eigenValues = std::vector<double>();
 	std::vector<int> ComputeISSKeypoints(const std::vector<Eigen::Vector3d> &input,
 												double salient_radius = 0.0,
 												double non_max_radius = 0.0,

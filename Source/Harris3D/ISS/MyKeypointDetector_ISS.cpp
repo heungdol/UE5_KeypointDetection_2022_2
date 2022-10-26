@@ -5,6 +5,9 @@ bool IsLocalMaxima(int query_idx,
 				   const std::vector<int>& indices,
 				   const std::vector<double>& third_eigen_values) {
 	for (const auto& idx : indices) {
+		if (query_idx == idx)
+			continue;
+		
 		if (third_eigen_values[query_idx] < third_eigen_values[idx]) {
 			return false;
 		}
@@ -95,46 +98,53 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
         //         "non_max_radius = {} from input model",
         //         salient_radius, non_max_radius);
     }
+	eigenValues.clear();
 
-    std::vector<double> third_eigen_values(input.size());
-#pragma omp parallel for schedule(static) shared(third_eigen_values)
+//#pragma omp parallel for schedule(static) shared(third_eigen_values)
     for (int i = 0; i < (int)input.size(); i++) {
         std::vector<int> indices;
         std::vector<double> dist;
         int nb_neighbors =
                 kdtree.SearchRadius(input[i], salient_radius, indices, dist);
         if (nb_neighbors < min_neighbors) {
+        	eigenValues.push_back(0);
             continue;
         }
 
         Eigen::Matrix3d cov = ComputeCovariance(input, indices);
         if (cov.isZero()) {
+        	eigenValues.push_back(0);
             continue;
         }
 
         Eigen::SelfAdjointEigenSolver<Eigen::Matrix3d> solver(cov);
-        const double& e1c = solver.eigenvalues()[2];
-        const double& e2c = solver.eigenvalues()[1];
-        const double& e3c = solver.eigenvalues()[0];
+        double e1c = solver.eigenvalues()[2];
+        double e2c = solver.eigenvalues()[1];
+        double e3c = solver.eigenvalues()[0];
 
         if ((e2c / e1c) < gamma_21 && e3c / e2c < gamma_32) {
-            third_eigen_values[i] = e3c;
+            eigenValues.push_back(e3c);
         }
+    	else
+    	{
+    		eigenValues.push_back(0);
+    	}
+
+    	cout <<  (e1c) << ", " << e2c << ", " << e3c << std::endl;
     }
 
-    std::vector<int> kp_indices;
-    kp_indices.reserve(input.size());
-#pragma omp parallel for schedule(static) shared(kp_indices)
+    std::vector<int> kp_indices = std::vector<int> ();
+    //kp_indices.reserve(input.size());
+//#pragma omp parallel for schedule(static) shared(kp_indices)
     for (int i = 0; i < (int)input.size(); i++) {
-        if (third_eigen_values[i] > 0.0) {
+        if (eigenValues[i] > 0.0) {
             std::vector<int> nn_indices;
             std::vector<double> dist;
             int nb_neighbors = kdtree.SearchRadius(input[i], non_max_radius,
                                                    nn_indices, dist);
 
-            if (nb_neighbors >= min_neighbors &&
-                IsLocalMaxima(i, nn_indices, third_eigen_values)) {
-                kp_indices.emplace_back(i);
+            if (nb_neighbors >= min_neighbors && IsLocalMaxima(i, nn_indices, eigenValues)) {
+                kp_indices.push_back (i);
             }
         }
     }
@@ -217,14 +227,14 @@ void AMyKeypointDetector_ISS::InitSelectedVertexLocation()
 	for (int i = 0; i < vrts_postSelected.Num(); i++)
 	{
 		FVector pos;
-		pos.X = meshData.positions[i][0];
-		pos.Y = meshData.positions[i][1];
-		pos.Z = meshData.positions[i][2];
+		pos.X = meshData.positions[vrts_postSelected[i]][0];
+		pos.Y = meshData.positions[vrts_postSelected[i]][1];
+		pos.Z = meshData.positions[vrts_postSelected[i]][2];
 
 		FVector no;
-		no.X = meshData.normals[i][0];
-		no.Y = meshData.normals[i][1];
-		no.Z = meshData.normals[i][2];
+		no.X = meshData.normals[vrts_postSelected[i]][0];
+		no.Y = meshData.normals[vrts_postSelected[i]][1];
+		no.Z = meshData.normals[vrts_postSelected[i]][2];
 		
 		vrtLocs_postSelected.Add(pos);
 		currentVrtLocs_postSelected.Add(pos);
