@@ -74,7 +74,7 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
         //utility::LogWarning("[ComputeISSKeypoints] Input PointCloud is empty!");
         return std::vector<int>{};
     }
-
+	
 	Eigen::MatrixXd _input = Eigen::MatrixXd::Zero (3, input.size());
 	// TODO vector vector3d -> vectorxd로 변환할 것
 	for (int _i = 0; _i < input.size(); _i++)
@@ -87,8 +87,11 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
 		_input (2, _i) = input[_i][2];
 	}
 	
-    KDTreeFlann kdtree(_input);
-
+    if (!kdtree.SetMatrixData(_input))
+    {
+    	return std::vector<int>{};
+    }
+	
     if (salient_radius == 0.0 || non_max_radius == 0.0) {
         const double resolution = ComputeModelResolution(input, kdtree);
         salient_radius = 6 * resolution;
@@ -130,7 +133,7 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
     		eigenValues.push_back(0);
     	}
 
-    	cout <<  (e1c) << ", " << e2c << ", " << e3c << std::endl;
+    	//cout <<  (e1c) << ", " << e2c << ", " << e3c << std::endl;
     }
 
     std::vector<int> kp_indices = std::vector<int> ();
@@ -153,6 +156,106 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
     //                   kp_indices.size());
     return kp_indices;
 }
+
+EVertexType AMyKeypointDetector_ISS::GetVertexType(int index, const int depth, const float dotFlat0, const float dotFlat1)
+{
+	EVertexType ret = EVertexType::NONE;
+
+	std::queue<int> queue;
+	std::unordered_map<int, bool> visited;
+    
+	// enqueue
+	queue.push(index);
+	queue.push(-1);
+	visited[index] = true;
+	int levels = 0;
+
+	std::vector<int> neighborIndices = std::vector<int>();
+    
+	// 주변 이웃 인덱스 구하기
+	while (!queue.empty())
+	{
+		int v = queue.front();
+		queue.pop();
+	    
+		if (v == -1)
+		{
+			levels++;
+			queue.push(-1);
+			if (queue.front() == -1 || levels == depth) break;
+		} 
+		else
+		{
+			for (int u : meshData.neighbors[v].neighborIndices)
+			{
+				if (!visited[u])
+				{
+					neighborIndices.push_back(u);
+
+					visited[u] = true;
+					queue.push (u);
+				}
+			}
+		}
+	}
+	
+	// 얻은 주변 인덱스를 이용하여 Type 계산
+	if (neighborIndices.size() == 0)
+		return EVertexType::NONE;
+
+	FVector neighboursPos_sum = FVector::Zero();
+	FVector neighboursPos_avg = FVector::Zero();
+
+	for (int i = 0; i != neighborIndices.size(); i++)
+		neighboursPos_sum += FVector(meshData.positions[neighborIndices[i]].x(), meshData.positions[neighborIndices[i]].y(), meshData.positions[neighborIndices[i]].z());
+
+	neighboursPos_avg = neighboursPos_sum / (1.0 * neighborIndices.size());
+
+	FVector direction_self = FVector(meshData.normals[index].x(), meshData.normals[index].y(), meshData.normals[index].z());
+	FVector direction_avg = FVector(meshData.positions[index].x(), meshData.positions[index].y(), meshData.positions[index].z()) - neighboursPos_avg;
+	direction_avg = direction_avg / FVector::Distance(FVector::Zero(), direction_avg);
+
+	float dotP = FVector::DotProduct(direction_self, direction_avg);
+	
+	if (dotFlat0 < dotP && dotP <= dotFlat1)
+	{
+		ret = EVertexType::VERTEX_FLAT;
+	}
+	else
+	{
+		if (dotP > 0)
+		{
+			ret = EVertexType::VERTEX_BUMP;
+		}
+		else
+		{
+			ret = EVertexType::VERTEX_SINK;
+		}
+	}
+
+	return ret;
+}
+
+EVertexNormalType AMyKeypointDetector_ISS::GetVertexNormalType(int index, const float dotUp, const float dotDown)
+{
+	FVector nor = FVector(meshData.normals[index].x(), meshData.normals[index].y(), meshData.normals[index].z());
+    
+	// 노멀 구분하기  
+	float dot = FVector::DotProduct(nor, FVector::UpVector);
+
+	if (dot > dotUp)
+	{
+		return EVertexNormalType::VERTEX_UP;
+	}
+	
+	if (dot < dotDown)
+	{
+		return EVertexNormalType::VERTEX_DOWN;
+	}
+
+	return EVertexNormalType::VERTEX_PARALLEL;
+}
+
 
 // ================================================================================================================================
 
@@ -178,6 +281,9 @@ void AMyKeypointDetector_ISS::OnConstruction(const FTransform& Transform)
 		
 		vrtLocs_postSelected.Empty();
 		vrtNors_postSelected.Empty();
+
+		vrtTypes_postSelected.Empty();
+		vrtNorTypes_postSelected.Empty();
 		
 		currentVrtLocs_postSelected.Empty();
 		currentVrtNors_postSelected.Empty();
@@ -241,6 +347,9 @@ void AMyKeypointDetector_ISS::InitSelectedVertexLocation()
 		
 		vrtNors_postSelected.Add(no);
 		currentVrtNors_postSelected.Add(no);
+
+		vrtTypes_postSelected.Push(GetVertexType(vrts_postSelected[i], m_vertexType_depth, _dotFlat0, _dotFlat1));
+		vrtNorTypes_postSelected.Push(GetVertexNormalType(vrts_postSelected[i], _dotUp, _dotDown));
 	}
 
 	for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
@@ -254,8 +363,11 @@ void AMyKeypointDetector_ISS::InitSelectedVertexLocation()
 		currentVrtLocs_postSelected [i] = actorLocation + offset;
 		currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
 	}
+
+	PrintDetectionInfo();
 }
 
+/*
 void AMyKeypointDetector_ISS::UpdateSelectedVertexLocation()
 {
 	Super::UpdateSelectedVertexLocation();
@@ -294,3 +406,4 @@ void AMyKeypointDetector_ISS::UpdateSelectedVertexLocation()
 			GetWorld()->GetTimerManager().ClearTimer(debugDrawWaitHandle);
 		}), WaitTime, true); //반복도 여기서 추가 변수를 선언해 설정가능
 }
+*/

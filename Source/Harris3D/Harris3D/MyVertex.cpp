@@ -86,12 +86,12 @@ set<int> MyVertex::GetNeighbours()
 	return ret;
 }*/
 
-void MyVertex::CalculateVertexType (MyMesh* myMesh, int ringSize, float dotFlat)
+EVertexType MyVertex::GetVertexType(MyMesh* myMesh, int ringSize, const float dotFlat0, const float dotFlat1)
 {
 	set <int> neighbours_ring = myMesh->CalculateNeighbourhood_Ring (vIndex, ringSize);
 	
 	if (neighbours_ring.size() == 0)
-		return;
+		return  EVertexType::NONE;
 
 	FVector neighboursPos_sum = FVector::Zero();
 	FVector neighboursPos_avg = FVector::Zero();
@@ -107,31 +107,42 @@ void MyVertex::CalculateVertexType (MyMesh* myMesh, int ringSize, float dotFlat)
 	FVector direction_self = myMesh->GetVertexNorByIndex(vIndex);
 	FVector direction_avg = myMesh->GetVertexLocByIndex(vIndex) - neighboursPos_avg;
 	direction_avg = direction_avg / FVector::Distance(FVector::Zero(), direction_avg);
-
-	//cout << direction_self.X << ", " << direction_self.Y << ", "<< direction_self.Z << endl;
-	//cout << direction_avg.X << ", " << direction_avg.Y << ", "<< direction_avg.Z << endl;
-	//cout << FVector::DotProduct(direction_self, direction_avg) << endl;
-
+	
 	float dotP = FVector::DotProduct(direction_self, direction_avg);
 	
-	if (abs(dotP) < dotFlat)
+	if (dotFlat0 < dotP && dotP < dotFlat1)
 	{
-		vType = EVertexType::VERTEX_FLAT;
+		return EVertexType::VERTEX_FLAT;
 	}
 	else
 	{
 		if (dotP > 0)
 		{
-			vType = EVertexType::VERTEX_BUMP;
+			return EVertexType::VERTEX_BUMP;
 		}
 		else
 		{
-			vType = EVertexType::VERTEX_SINK;
+			return EVertexType::VERTEX_SINK;
 		}
 	}
+	
+	return  EVertexType::NONE;
 }
 
-EVertexType MyVertex::GetVertexType()
+EVertexNormalType MyVertex::GetVertexNormalType(const float dotUp, const float dotDown)
 {
-	return vType;
+	// 노멀 구분하기  
+	float dot = FVector::DotProduct(vNormal, FVector::UpVector);
+
+	if (dot > dotUp)
+	{
+		return EVertexNormalType::VERTEX_UP;
+	}
+	
+	if (dot < dotDown)
+	{
+		return EVertexNormalType::VERTEX_DOWN;
+	}
+
+	return EVertexNormalType::VERTEX_PARALLEL;
 }

@@ -138,6 +138,103 @@ bool Vertex::isFeature(int t, int depth) const
     return true;
 }
 
+EVertexType Vertex::getVertexType(const MeshData& meshData, const float dotFlat0, const float dotFlat1, int depth) const
+{
+    EVertexType ret = EVertexType::NONE;
+    
+    std::queue<const Vertex *> queue;
+    std::unordered_map<int, bool> visited;
+    
+    // enqueue
+    queue.push(this);
+    queue.push(NULL);
+    visited[index] = true;
+    int levels = 0;
+
+    std::vector<int> neighborIndices = std::vector<int>();
+    
+    // 주변 이웃 인덱스 구하기
+    while (!queue.empty()) {
+        const Vertex *v = queue.front();
+        queue.pop();
+        
+        if (v == NULL) {
+            levels++;
+            queue.push(NULL);
+            if (queue.front() == NULL || levels == depth) break;
+            
+        } else {
+            HalfEdgeCIter h = v->he;
+            do {
+                const Vertex *vn = &(*h->flip->vertex);
+                
+                if (!visited[vn->index])
+                {
+                    neighborIndices.push_back(vn->index);
+                }
+                
+                h = h->flip->next;
+            } while (h != v->he);
+        }
+    }
+
+    // 얻은 주변 인덱스를 이용하여 Type 계산
+    if (neighborIndices.size() == 0)
+        return EVertexType::NONE;
+
+    FVector neighboursPos_sum = FVector::Zero();
+    FVector neighboursPos_avg = FVector::Zero();
+
+    for (int i = 0; i != neighborIndices.size(); i++)
+        neighboursPos_sum += FVector(meshData.positions[neighborIndices[i]].x(), meshData.positions[neighborIndices[i]].y(), meshData.positions[neighborIndices[i]].z());
+
+    neighboursPos_avg = neighboursPos_sum / (1.0 * neighborIndices.size());
+
+    FVector direction_self = FVector(meshData.normals[index].x(), meshData.normals[index].y(), meshData.normals[index].z());
+    FVector direction_avg = FVector(meshData.positions[index].x(), meshData.positions[index].y(), meshData.positions[index].z()) - neighboursPos_avg;
+    direction_avg = direction_avg / FVector::Distance(FVector::Zero(), direction_avg);
+
+    float dotP = FVector::DotProduct(direction_self, direction_avg);
+    
+    if (dotFlat0 < dotP && dotP <= dotFlat1)
+    {
+        ret = EVertexType::VERTEX_FLAT;
+    }
+    else
+    {
+        if (dotP > 0)
+        {
+            ret = EVertexType::VERTEX_BUMP;
+        }
+        else
+        {
+            ret = EVertexType::VERTEX_SINK;
+        }
+    }
+    
+    return ret;
+}
+
+EVertexNormalType Vertex::getVertexNormalType(const MeshData& meshData, const float dotUp, const float dotDown) const
+{
+    FVector nor = FVector(meshData.normals[index].x(), meshData.normals[index].y(), meshData.normals[index].z());
+    
+    // 노멀 구분하기  
+    float dot = FVector::DotProduct(nor, FVector::UpVector);
+
+    if (dot > dotUp)
+    {
+        return EVertexNormalType::VERTEX_UP;
+    }
+
+    if (dot < dotDown)
+    {
+        return EVertexNormalType::VERTEX_DOWN;
+    }
+
+    return EVertexNormalType::VERTEX_PARALLEL;
+}
+
 double Vertex::computeWeightedCurvature(VertexIter root, const double distance2)
 {
     std::queue<VertexIter> queue;

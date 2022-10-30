@@ -39,6 +39,9 @@ void AMyKeypointDetector_Harris::OnConstruction(const FTransform& Transform)
 		
 		vrtLocs_postSelected.Empty();
 		vrtNors_postSelected.Empty();
+
+		vrtTypes_postSelected.Empty();
+		vrtNorTypes_postSelected.Empty();
 		
 		currentVrtLocs_postSelected.Empty();
 		currentVrtNors_postSelected.Empty();
@@ -68,7 +71,7 @@ void AMyKeypointDetector_Harris::InitKeypointDetection()
 	AMyKeypointDetector_Harris::ringSize = m_ringSize;
 
 	// 전체 버택스 비율로 내어 선택할 개수를 구할 때 사용되는 상수
-	AMyKeypointDetector_Harris::fraction_constant = m_fraction;
+	//AMyKeypointDetector_Harris::fraction_constant = m_fraction;
 	
 	AMyKeypointDetector_Harris::k_parameter = m_k;
 
@@ -77,6 +80,9 @@ void AMyKeypointDetector_Harris::InitKeypointDetection()
 
 void AMyKeypointDetector_Harris::CalculateHarrisResponse()
 {
+	if (myMesh.GetIsEnableModel() == false)
+		return;
+	
 	int vertexSize = myMesh.vertices.size();
 	
 	for (int indexVertex = 0; indexVertex < vertexSize; indexVertex++)
@@ -84,12 +90,12 @@ void AMyKeypointDetector_Harris::CalculateHarrisResponse()
 		//vertexSize
 
 		// 중복인 경우 계산하지 않고 컨티뉴
-		if (indexVertex != myMesh.overlappingVert[indexVertex])
+		/*if (indexVertex != myMesh.overlappingVert[indexVertex])
 		{
 			//harrisRPoints.push_back(harrisRPoints[myMesh.overlappingVert[indexVertex]]);
-			harrisRPoints.push_back(1000);
+			harrisRPoints.push_back(0);
 			continue;
-		}
+		}*/
 
 		vector<double> x_coord, y_coord, z_coord;
 		//caculate the neighbourhood
@@ -226,11 +232,11 @@ void AMyKeypointDetector_Harris::CalculateHarrisResponse()
 	vector<int> preselected;
 	for (int nV = 0; nV < vertexSize; nV++)
 	{
-		// 중복 패스
+		/*// 중복 패스
 		if (nV != myMesh.overlappingVert[nV])
 		{
 			continue;
-		}
+		}*/
 		
 		bool localMaxima = GetIsLocalMaxima(nV);
 		if (localMaxima == true)
@@ -295,7 +301,9 @@ void AMyKeypointDetector_Harris::CalculateHarrisResponse()
 
 bool AMyKeypointDetector_Harris::GetIsLocalMaxima(unsigned int vertexIndex)
 {
-	set<int> nhd = myMesh.vertices[vertexIndex].GetNeighbours();
+	set<int> nhd = myMesh.CalculateNeighbourhood_Ring(vertexIndex, ringSize);
+	//myMesh.vertices[vertexIndex].GetNeighbours();
+	
 	set<int>::iterator itrr;
 	for (itrr = nhd.begin(); itrr != nhd.end(); ++itrr)
 	{
@@ -322,6 +330,9 @@ void AMyKeypointDetector_Harris::InitSelectedVertexLocation()
 		
 		vrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
 		currentVrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
+
+		vrtTypes_postSelected.Push(myMesh.vertices[vrts_postSelected[i]].GetVertexType(&myMesh, m_vertexType_depth, _dotFlat0, _dotFlat1));
+		vrtNorTypes_postSelected.Push(myMesh.vertices[vrts_postSelected[i]].GetVertexNormalType(_dotUp, _dotDown));
 	}
 
 	for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
@@ -335,4 +346,6 @@ void AMyKeypointDetector_Harris::InitSelectedVertexLocation()
 		currentVrtLocs_postSelected [i] = actorLocation + offset;
 		currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
 	}
+
+	PrintDetectionInfo ();
 }

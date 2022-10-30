@@ -81,11 +81,20 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
     }
 
     // 테스트
+    /*
     int maxi = 0;
     for (int t = 0; t < tris.Num(); t++)
     {
         maxi = std::max (maxi, tris [t]);
     }
+    */
+
+    for (VertexNeighbor vn : meshData.neighbors)
+    {
+        vn.neighborIndices.clear();
+    }
+    meshData.neighbors.clear();
+    meshData.neighbors = std::vector<VertexNeighbor> (meshData.positions.size());
 
     // 페이스 설정
     for (int i = 0; i < tris.Num(); i+=3)
@@ -99,6 +108,15 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
         indexVec.push_back(Index (tris [i+2], tris [i+2], tris [i+2]));
         
         meshData.indices.push_back(indexVec);
+
+        meshData.neighbors [tris [i+0]].neighborIndices.push_back(tris [i+1]);
+        meshData.neighbors [tris [i+0]].neighborIndices.push_back(tris [i+2]);
+
+        meshData.neighbors [tris [i+1]].neighborIndices.push_back(tris [i+0]);
+        meshData.neighbors [tris [i+1]].neighborIndices.push_back(tris [i+2]);
+
+        meshData.neighbors [tris [i+2]].neighborIndices.push_back(tris [i+0]);
+        meshData.neighbors [tris [i+2]].neighborIndices.push_back(tris [i+1]);
     }
     return true;
 }

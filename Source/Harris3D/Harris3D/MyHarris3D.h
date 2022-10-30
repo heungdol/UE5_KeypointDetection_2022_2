@@ -34,6 +34,22 @@ public:
 	//virtual void PostInitProperties () override;
 	//virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
+	virtual string GetDetectorName()
+	{
+		return "Harris 3D";
+	};
+
+	virtual void PrintDetectionInfo ()
+	{
+		// 출력
+		// 이름
+		// 파라미터
+		// 전체 Keypoint 개수
+		// Normal 별 개수
+		// Type 별 개수
+		
+	}
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateHarris3D ();
 

@@ -5,6 +5,7 @@
 #include "Edge.h"
 #include "Face.h"
 #include "HalfEdge.h"
+#include "MeshIO.h"
 #include <ThirdParty/Eigen/Eigen/SparseCore>
 
 class Mesh {
@@ -18,6 +19,7 @@ public:
     
     // write mesh to file
     // bool write(const std::string& fileName) const;
+    MeshData meshData = MeshData();
 
     // member variables
     std::vector<HalfEdge> halfEdges;

@@ -7,6 +7,7 @@
 #include "StaticMeshResources.h"
 #include "MyVertex.h"
 #include "MyFace.h"
+#include "../MyUtil/MeshIO.h"
 
 //UPROPERTY(BlueprintReadOnly, Category="Inspector")
 #define VERTEX_NUMBER_MAX 50000
@@ -24,7 +25,10 @@ public:
 
 	vector<MyFace> faces;
 	vector<MyVertex> vertices;
-	vector<int> overlappingVert;
+	//vector<int> overlappingVert;
+	
+
+	MeshData meshData = MeshData();
 
 	bool isEnableModel = false;
 

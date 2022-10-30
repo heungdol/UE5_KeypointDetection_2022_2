@@ -192,12 +192,12 @@ void AMyHarris3D::CalculateHarrisResponse()
 		//vertexSize
 
 		// 중복인 경우 계산하지 않고 컨티뉴
-		if (indexVertex != myMesh.overlappingVert[indexVertex])
+		/*if (indexVertex != myMesh.overlappingVert[indexVertex])
 		{
 			//harrisRPoints.push_back(harrisRPoints[myMesh.overlappingVert[indexVertex]]);
 			harrisRPoints.push_back(1000);
 			continue;
-		}
+		}*/
 
 		vector<double> x_coord, y_coord, z_coord;
 		//caculate the neighbourhood
@@ -335,10 +335,10 @@ void AMyHarris3D::CalculateHarrisResponse()
 	for (int nV = 0; nV < vertexSize; nV++)
 	{
 		// 중복 패스
-		if (nV != myMesh.overlappingVert[nV])
+		/*if (nV != myMesh.overlappingVert[nV])
 		{
 			continue;
-		}
+		}*/
 		
 		bool localMaxima = GetIsLocalMaxima(nV);
 		if (localMaxima == true)
@@ -495,12 +495,12 @@ void AMyHarris3D::CalculateNMS ()
 		vrts_postSelected.Add(vrts_selected[index]);
 	}
 	
-	// 오버랩 확인
+	/*// 오버랩 확인
 	for (int i = 0; i < myMesh.overlappingVert.size(); i++)
 	{
 		if (i != myMesh.overlappingVert[i])
 			vrts_overlapped.Add(i);
-	}
+	}*/
 
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Total Vertex Number: " + FString::FromInt(myMesh.vertices.size())));
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Overlapped Vertex Number: " + FString::FromInt(vrts_overlapped.Num())));
@@ -511,7 +511,7 @@ void AMyHarris3D::CalculateVertexType()
 	// 선택된 keypoint 돌출 / 함몰 계산
 	for (int index = 0; index < vrts_postSelected.Num(); index++)
 	{
-		myMesh.vertices[vrts_postSelected[index]].CalculateVertexType(&myMesh, m_bumpSink_ring, m_bumpSink_dot_flat);
+		//myMesh.vertices[vrts_postSelected[index]].CalculateVertexType(&myMesh, m_bumpSink_ring, m_bumpSink_dot_flat);
 	}
 }
 
@@ -546,7 +546,7 @@ void AMyHarris3D::InitSelectedVertexLocation()
 		vrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
 		currentVrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
 
-		vrtTypes_postSelected.Push (myMesh.vertices[vrts_postSelected[i]].GetVertexType());
+		//vrtTypes_postSelected.Push (myMesh.vertices[vrts_postSelected[i]].GetVertexType());
 	}
 
 	for (int i = 0; i < vrts_unselected.Num(); i++)
@@ -630,7 +630,7 @@ void AMyHarris3D::UpdateSelectedVertexLocation()
 
 				if (m_debugDraw == true && m_debugDraw_postSelected == true)
 				{
-					if (myMesh.vertices[vrts_postSelected[i]].GetVertexType() == EVertexType::VERTEX_BUMP)
+					/*if (myMesh.vertices[vrts_postSelected[i]].GetVertexType() == EVertexType::VERTEX_BUMP)
 						DrawDebugLine(GetWorld()
 						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
 						, FColorList::Red, false, 0.1, 0, 1);
@@ -645,7 +645,10 @@ void AMyHarris3D::UpdateSelectedVertexLocation()
 					else
 						DrawDebugLine(GetWorld()
 						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Black, false, 0.1, 0, 1);
+						, FColorList::Black, false, 0.1, 0, 1);*/
+					DrawDebugLine(GetWorld()
+						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
+						, FColorList::Red, false, 0.1, 0, 1);
 				}
 
 			}

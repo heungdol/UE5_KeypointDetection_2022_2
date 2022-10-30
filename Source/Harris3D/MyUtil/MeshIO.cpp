@@ -99,17 +99,18 @@ void MeshIO::indexElements(Mesh& mesh)
     }
 }
 
-
-
-
-bool MeshIO::read(const UStaticMeshComponent* sm, Mesh& mesh)
+bool MeshIO::read(const UStaticMeshComponent* sm, Mesh& mesh, MeshData& meshData)
 {
-    MeshData data;
-
-    if (!MyUtil::ReadMeshWithoutOverwrap (sm, data))
+    //MeshData data;
+    meshData.indices.clear();
+    meshData.normals.clear();
+    meshData.positions.clear();
+    meshData.uvs.clear();
+    
+    if (!MyUtil::ReadMeshWithoutOverwrap (sm, meshData))
         return false;
     
-    return buildMesh(data, mesh);
+    return buildMesh(meshData, mesh);
 }
 
 void MeshIO::checkIsolatedVertices(const Mesh& mesh)

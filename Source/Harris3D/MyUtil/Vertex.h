@@ -2,6 +2,8 @@
 #define VERTEX_H
 
 #include "Types.h"
+#include "VertexType.h"
+#include "MeshIO.h"
 
 struct Projection {    
     Eigen::Vector3d p;
@@ -50,6 +52,11 @@ public:
     // checks if vertex is a feature
     bool isFeature(int t, int depth = 2) const;
 
+	// 버텍스 타입
+	EVertexType	getVertexType(const MeshData& meshData, const float dotFlat0, const float dotFlat1, int depth = 2) const;
+	
+	// 버텍스 노멀 타입
+	EVertexNormalType getVertexNormalType (const MeshData& meshData, const float dotUp, const float dotDown) const;
     // ============ mesh saliency =======================
 
     // mean curvature

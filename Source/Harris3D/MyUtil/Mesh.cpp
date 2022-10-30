@@ -39,7 +39,7 @@ bool Mesh::read(const UStaticMeshComponent* sm)
     //TODO HKS 막아놓음
     //return false;
 
-    bool readSuccessful = MeshIO::read(sm, *this);
+    bool readSuccessful = MeshIO::read(sm, *this, meshData);
     if (readSuccessful)
     {
         normalize();

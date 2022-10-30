@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "MyUtil/VertexType.h"
 #include "MyKeypointDetector.generated.h"
 
 using namespace  std;
@@ -25,9 +26,31 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
+	const float _dotDown = -0.5f;
+	const float _dotUp = 0.5f;
+
+	const float _dotFlat0 = -0.5f;
+	const float _dotFlat1 = 0.5f;
+	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	virtual string GetDetectorName()
+	{
+		return "NONE";
+	};
+
+	virtual void PrintDetectionInfo ()
+	{
+		// 출력
+		// 이름
+		// 파라미터
+		// 전체 Keypoint 개수
+		// Normal 별 개수
+		// Type 별 개수
+		
+	}
 
 	UPROPERTY (VisibleAnywhere)
 	UStaticMeshComponent* m_pMeshCom;
@@ -51,6 +74,8 @@ public:
 	
 	TArray <FVector> vrtLocs_postSelected;
 	TArray <FVector> vrtNors_postSelected;
+	TArray <EVertexType> vrtTypes_postSelected;
+	TArray <EVertexNormalType> vrtNorTypes_postSelected;
 	
 	TArray <FVector> currentVrtLocs_postSelected;
 	TArray <FVector> currentVrtNors_postSelected;

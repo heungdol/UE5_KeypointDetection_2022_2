@@ -29,6 +29,9 @@ void AMyKeypointDetector_HKS::OnConstruction(const FTransform& Transform)
 		
 		vrtLocs_postSelected.Empty();
 		vrtNors_postSelected.Empty();
+
+		vrtTypes_postSelected.Empty();
+		vrtNorTypes_postSelected.Empty();
 		
 		currentVrtLocs_postSelected.Empty();
 		currentVrtNors_postSelected.Empty();
@@ -68,6 +71,11 @@ void AMyKeypointDetector_HKS::InitSelectedVertexLocation()
 		
 		vrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
 		currentVrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
+
+		EVertexType vertexType = myMesh.vertices[vrts_postSelected[i]].getVertexType(myMesh.meshData, _dotFlat0, _dotFlat1, m_vertexType_depth);
+		EVertexNormalType vertexNormalType = myMesh.vertices[vrts_postSelected[i]].getVertexNormalType(myMesh.meshData, _dotUp, _dotDown);
+		vrtTypes_postSelected.Push(vertexType);
+		vrtNorTypes_postSelected.Push(vertexNormalType);
 	}
 
 	for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
@@ -81,6 +89,8 @@ void AMyKeypointDetector_HKS::InitSelectedVertexLocation()
 		currentVrtLocs_postSelected [i] = actorLocation + offset;
 		currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
 	}
+
+	PrintDetectionInfo ();
 }
 
 void AMyKeypointDetector_HKS::CalculateHKS()

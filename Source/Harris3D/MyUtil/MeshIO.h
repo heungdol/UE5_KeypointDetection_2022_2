@@ -8,7 +8,7 @@
 class MeshIO {
 public:
     // reads data from obj file
-    static bool read(const UStaticMeshComponent* sm, Mesh& mesh);
+    static bool read(const UStaticMeshComponent* sm, Mesh& mesh, MeshData& meshData);
     
     // reads eigenvectors and eigenvalues from file
     // static void readEig(std::ifstream& in, Eigen::VectorXd& evals, Eigen::MatrixXd& evecs);

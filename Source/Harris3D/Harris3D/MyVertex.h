@@ -4,18 +4,12 @@
 
 #include "KismetProceduralMeshLibrary.h"
 #include "MeshDescription.h"
+
+#include "../MyUtil/VertexType.h"
+
 #include "MyMesh.h"
 
 using namespace std;
-
-UENUM(BlueprintType)
-enum class EVertexType : uint8
-{
-	NONE
-	, VERTEX_BUMP
-	, VERTEX_SINK
-	, VERTEX_FLAT
-};
 
 class MyMesh;
 class MyFace;
@@ -51,6 +45,8 @@ public:
 	set<int> GetNeighbours();
 	//TArray <int> GetNeighbours_TArray ();
 
-	void CalculateVertexType (MyMesh* myMesh, int ringSize, float dotFlat);
-	EVertexType GetVertexType ();
+	//void CalculateVertexType (MyMesh* myMesh, int ringSize, float dotFlat);
+	
+	EVertexType GetVertexType (MyMesh* myMesh, int ringSize, const float dotFlat0, const float dotFlat1);
+	EVertexNormalType GetVertexNormalType (const float dotUp, const float dotDown);
 };

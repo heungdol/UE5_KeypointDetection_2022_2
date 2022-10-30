@@ -10,31 +10,31 @@ MyMesh::MyMesh (const UStaticMeshComponent* sm)
 {
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("11"));
 	
-	vertices.clear();
+	/*vertices.clear();
 	faces.clear();
-	overlappingVert.clear ();
+	overlappingVert.clear ();*/
 	
 	if (ReadFile(sm) == false)
 		return;
 	
 	double xmin=0.0, xmax=0.0, ymin=0.0, ymax=0.0, zmin=0.0, zmax=0.0;
 
-	for(int k = 0; k < vertices.size(); k++)
+	for(int k = 0; k < meshData.positions.size(); k++)
 	{
-		if(vertices[k].GetX() < xmin)
-			xmin = vertices[k].GetX();
-		else if(vertices[k].GetX() > xmax)
-			xmax = vertices[k].GetX();
+		if(meshData.positions[k].x() < xmin)
+			xmin = meshData.positions[k].x();
+		else if(meshData.positions[k].x() > xmax)
+			xmax = meshData.positions[k].x();
 
-		if(vertices[k].GetY() < ymin)
-			ymin = vertices[k].GetY();
-		else if(vertices[k].GetY() > ymax)
-			ymax = vertices[k].GetY();
+		if(meshData.positions[k].y() < ymin)
+			ymin = meshData.positions[k].y();
+		else if(meshData.positions[k].y() > ymax)
+			ymax = meshData.positions[k].y();
 
-		if(vertices[k].GetZ() < zmin)
-			zmin = vertices[k].GetZ();
-		else if(vertices[k].GetZ() > zmax)
-			zmax = vertices[k].GetZ();
+		if(meshData.positions[k].z() < zmin)
+			zmin = meshData.positions[k].z();
+		else if(meshData.positions[k].z() > zmax)
+			zmax = meshData.positions[k].z();
 	}
 
 	diagValue = sqrt((xmax - xmin)*(xmax - xmin) + (ymax - ymin)*(ymax - ymin) + (zmax - zmin)*(zmax - zmin));
@@ -50,6 +50,7 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 {
 	int numVertices, numFaces;;
 	
+	/*
 	// Static Mesh 정보 가져오기
 	TArray <FVector> verts;
 	TArray <int> tris;
@@ -58,11 +59,20 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 	TArray<FProcMeshTangent> tans;
 
 	UKismetProceduralMeshLibrary::GetSectionFromStaticMesh(sm->GetStaticMesh(), 0, 0, verts, tris, nors, uvs, tans);
-	
-	numVertices = verts.Num();
-	numFaces = tris.Num ();
+	*/
 
-	if (numVertices <= 0)
+	meshData.indices.clear();
+	meshData.positions.clear();
+	meshData.normals.clear();
+	meshData.uvs.clear();
+
+	if (!MyUtil::ReadMeshWithoutOverwrap (sm, meshData))
+		return false;
+	
+	numVertices = meshData.positions.size();
+	numFaces = meshData.indices.size();
+
+	/*if (numVertices <= 0)
 		return isEnableModel = false;
 
 	// 버텍스 개수가 너무 많으면
@@ -70,7 +80,7 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 	{
 		isEnableModel = false;
 		return false;
-	}
+	}*/
 
 	isEnableModel = true;
 	
@@ -87,23 +97,27 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 	{
 		double xc, yc, zc;
 
-		xc = verts [i].X;
-		yc = verts [i].Y;
-		zc = verts [i].Z;
+		xc = meshData.positions [i].x();
+		yc = meshData.positions [i].y();
+		zc = meshData.positions [i].z();
 
 		MyVertex v;
 		v.vIndex=i;
 		v.SetXYZ(xc,yc,zc);
-		v.SetVertexNormal(nors [i]);
 
-		overlappingVert.push_back(i);
+		xc = meshData.normals [i].x();
+		yc = meshData.normals [i].y();
+		zc = meshData.normals [i].z();
+		v.SetVertexNormal(FVector (xc, yc, zc));
+
+		//overlappingVert.push_back(i);
 		//count++;
 		
 		// 중복 버텍스 제거 위함
 		// 처음부터 순회하면서 같은 위치에 있는 것을 중복으로 판단한다
 		// Mesh를 읽는 엔진 구조상 아래와 같은 번거로운 과정을 거친다
 
-		for (int j = 0; j < overlappingVert.size()-1; j++)
+		/*for (int j = 0; j < overlappingVert.size()-1; j++)
 		{
 			// 거리로 판단
 			float dist = FVector::Dist(verts[i], verts[j]);
@@ -115,7 +129,7 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 				//count--;
 				break;
 			}
-		}
+		}*/
 		
 		vertices.push_back(v);
 	}
@@ -125,16 +139,16 @@ bool MyMesh::ReadFile(const UStaticMeshComponent* sm)
 	///GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("OH: " + FString::FromInt(vertices[0].GetZ())));
 	
 	// UStaticMesh->Face Vertex 3개 묶음
-	for(int i = 0, fi = 0;  i < numFaces; i+=3, fi++)
+	for(int i = 0;  i < numFaces; i++)
 	{
 		int vt1, vt2, vt3;
 		
-		vt1 = overlappingVert [tris[i+0]];
-		vt2 = overlappingVert [tris[i+1]];
-		vt3 = overlappingVert [tris[i+2]];
+		vt1 = meshData.indices[i][0].position;
+		vt2 = meshData.indices[i][1].position;
+		vt3 = meshData.indices[i][2].position;
 
 		MyFace f;
-		f.fIndex=fi;
+		f.fIndex=i;
 		f.AddVertices(vt1,vt2,vt3);
 		
 		//create 1st ring neighbourhood, credit to source code
