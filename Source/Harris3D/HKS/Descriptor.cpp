@@ -153,7 +153,6 @@ void Descriptor::computeHks()
                 C(i) += exponent;
                 t += factor*step;
                 
-                // take larger steps with increasing t to bias ts towards high frequency features
                 factor += 0.1;
             }
         }

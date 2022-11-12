@@ -7,14 +7,7 @@ Mesh::Mesh()
 
 Mesh::Mesh(const UStaticMeshComponent* sm)
 {
-    halfEdges.clear();
-    vertices.clear();
-    edges.clear();
-    faces.clear ();
-    boundaries.clear();
-
-    verts.clear();
-    nors.clear();
+    Clear ();
     
     isEnableModel = read (sm);
 }

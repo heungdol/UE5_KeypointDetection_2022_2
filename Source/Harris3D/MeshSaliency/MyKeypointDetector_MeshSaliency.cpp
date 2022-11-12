@@ -16,7 +16,8 @@ void AMyKeypointDetector_MeshSaliency::OnConstruction(const FTransform& Transfor
 		// 메쉬 판단
 		if (!m_pMeshCom)
 			return;
-	
+
+		myMesh.Clear ();
 		myMesh = Mesh (m_pMeshCom);
 
 		// 만약 적절하지 않은 모델이라면
@@ -28,6 +29,8 @@ void AMyKeypointDetector_MeshSaliency::OnConstruction(const FTransform& Transfor
 		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		vrts_selected.clear();
+		vector <int>().swap(vrts_selected);
+		
 		vrts_postSelected.Empty();
 		
 		vrtLocs_postSelected.Empty();
@@ -146,9 +149,12 @@ void AMyKeypointDetector_MeshSaliency::computeSaliency()
     for (VertexIter v = myMesh.vertices.begin(); v != myMesh.vertices.end(); v++) {
         bbox.expandToInclude(v->position);
     }
+	// TODO 수정
+	// 길이의 제곱
     double extent = 0.003 * 0.003 * bbox.extent.squaredNorm();
     
     // 3
+	// {2, 3, 4, 5, 6}
     for (int i = 0; i < levels; i++) {
         
         // compute level saliencies

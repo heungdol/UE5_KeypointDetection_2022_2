@@ -35,6 +35,8 @@ void AMyKeypointDetector_Harris::OnConstruction(const FTransform& Transform)
 		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		vrts_selected.clear();
+		vector <int>().swap(vrts_selected);
+		
 		vrts_postSelected.Empty();
 		
 		vrtLocs_postSelected.Empty();

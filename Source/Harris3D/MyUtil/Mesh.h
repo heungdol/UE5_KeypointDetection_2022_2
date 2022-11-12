@@ -13,7 +13,7 @@ public:
     // default constructor
     Mesh ();
     Mesh(const UStaticMeshComponent* sm);
-        
+
     // read mesh from file
     bool read(const UStaticMeshComponent* sm);
     
@@ -39,6 +39,32 @@ public:
     bool GetIsEnableModel ();
     FVector GetVertexLocByIndex (int ii);
     FVector GetVertexNorByIndex (int ii);
+
+    void Clear ()
+    {
+        halfEdges.clear();
+        std::vector<HalfEdge>().swap(halfEdges);
+        
+        vertices.clear();
+        std::vector<Vertex>().swap(vertices);
+        
+        edges.clear();
+        std::vector<Edge>().swap(edges);
+        
+        faces.clear();
+        std::vector<Face>().swap(faces);
+        
+        boundaries.clear();
+        std::vector<HalfEdgeIter>().swap(boundaries);
+
+        verts.clear();
+        std::vector<FVector>().swap(verts);
+        
+        nors.clear();
+        std::vector<FVector>().swap(nors);
+
+        meshData.Clear();
+    }
 
 private:
     // center mesh about origin and rescale to unit radius

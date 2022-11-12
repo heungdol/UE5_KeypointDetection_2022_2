@@ -6,6 +6,11 @@
 
 class Face {
 public:
+    ~Face ()
+    {
+        
+    }
+    
     // one of the halfedges associated with this face
     HalfEdgeIter he;
     

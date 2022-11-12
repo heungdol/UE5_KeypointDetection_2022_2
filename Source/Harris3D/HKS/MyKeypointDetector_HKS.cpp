@@ -13,7 +13,8 @@ void AMyKeypointDetector_HKS::OnConstruction(const FTransform& Transform)
 		// 메쉬 판단
 		if (!m_pMeshCom)
 			return;
-	
+
+		myMesh.Clear ();
 		myMesh = Mesh (m_pMeshCom);
 
 		// 만약 적절하지 않은 모델이라면
@@ -25,6 +26,8 @@ void AMyKeypointDetector_HKS::OnConstruction(const FTransform& Transform)
 		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		vrts_selected.clear();
+		vector <int>().swap(vrts_selected);
+		
 		vrts_postSelected.Empty();
 		
 		vrtLocs_postSelected.Empty();

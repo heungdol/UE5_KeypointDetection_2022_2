@@ -115,6 +115,13 @@ public:
 		cout << "Normal Number (Up): " << countUp << std::endl;
 		cout << "Normal Number (Parellel): " << countParallel << std::endl;
 		cout << "Normal Number (Down): " << countDown << std::endl;
+
+		cout << "======================================================" << endl;
+		for (Vertex v : myMesh.vertices)
+		{
+			cout << v.meanCurvature << endl;
+		}
+		
 	}
 	
 	Mesh myMesh;

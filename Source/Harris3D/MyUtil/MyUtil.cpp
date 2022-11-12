@@ -1,6 +1,6 @@
 ﻿#include "MyUtil.h"
 
-bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData& meshData)
+bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData& meshData, float scale)
 {
      // Static Mesh 정보 가져오기
     TArray <FVector> verts;
@@ -49,7 +49,7 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
         if (overlappingVert [i] != i)
             continue;
         
-        meshData.positions.push_back(Eigen::Vector3d(verts[i].X, verts[i].Y, verts[i].Z));
+        meshData.positions.push_back(Eigen::Vector3d(verts[i].X, verts[i].Y, verts[i].Z) * scale);
         meshData.uvs.push_back(Eigen::Vector3d(uvs[i].X, uvs[i].Y,0));
         meshData.normals.push_back(Eigen::Vector3d(nors[i].X, nors[i].Y, nors[i].Z));
 
@@ -89,12 +89,12 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
     }
     */
 
-    for (VertexNeighbor vn : meshData.neighbors)
+    for (std::vector <int> vn : meshData.neighbors)
     {
-        vn.neighborIndices.clear();
+        vn.clear();
     }
     meshData.neighbors.clear();
-    meshData.neighbors = std::vector<VertexNeighbor> (meshData.positions.size());
+    meshData.neighbors = std::vector<std::vector <int>> (meshData.positions.size());
 
     // 페이스 설정
     for (int i = 0; i < tris.Num(); i+=3)
@@ -109,14 +109,14 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
         
         meshData.indices.push_back(indexVec);
 
-        meshData.neighbors [tris [i+0]].neighborIndices.push_back(tris [i+1]);
-        meshData.neighbors [tris [i+0]].neighborIndices.push_back(tris [i+2]);
+        meshData.neighbors [tris [i+0]].push_back(tris [i+1]);
+        meshData.neighbors [tris [i+0]].push_back(tris [i+2]);
 
-        meshData.neighbors [tris [i+1]].neighborIndices.push_back(tris [i+0]);
-        meshData.neighbors [tris [i+1]].neighborIndices.push_back(tris [i+2]);
+        meshData.neighbors [tris [i+1]].push_back(tris [i+0]);
+        meshData.neighbors [tris [i+1]].push_back(tris [i+2]);
 
-        meshData.neighbors [tris [i+2]].neighborIndices.push_back(tris [i+0]);
-        meshData.neighbors [tris [i+2]].neighborIndices.push_back(tris [i+1]);
+        meshData.neighbors [tris [i+2]].push_back(tris [i+0]);
+        meshData.neighbors [tris [i+2]].push_back(tris [i+1]);
     }
     return true;
 }

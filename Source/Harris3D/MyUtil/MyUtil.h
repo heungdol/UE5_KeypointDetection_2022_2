@@ -24,27 +24,27 @@ public:
 	int normal;
 };
 
-class VertexNeighbor
-{
-public:
-	int index;
-	std::vector <int> neighborIndices = std::vector <int> {};
-
-	/*void SetIndex (int i)
-	{
-		index = i;
-	}
-
-	void AddNeighbor (int i)
-	{
-		neighbors.push_back(i);
-	}
-
-	std::vector <int>& GetNeighbors ()
-	{
-		return neighbors;
-	}*/
-};
+// class VertexNeighbor
+// {
+// public:
+// 	int index;
+// 	std::vector <int> neighborIndices = std::vector <int> {};
+//
+// 	/*void SetIndex (int i)
+// 	{
+// 		index = i;
+// 	}
+//
+// 	void AddNeighbor (int i)
+// 	{
+// 		neighbors.push_back(i);
+// 	}
+//
+// 	std::vector <int>& GetNeighbors ()
+// 	{
+// 		return neighbors;
+// 	}*/
+// };
 
 
 class MeshData {
@@ -53,7 +53,7 @@ public:
 	std::vector<Eigen::Vector3d> uvs;
 	std::vector<Eigen::Vector3d> normals;
 	std::vector<std::vector<Index>> indices;   // 3개 단위
-	std::vector <VertexNeighbor> neighbors;
+	std::vector <std::vector <int>> neighbors;
 
 	double GetArea ()
 	{
@@ -76,11 +76,44 @@ public:
 		ret *= 0.01 * 0.01;
 		return ret;
 	}
+
+	void Clear ()
+	{
+		positions.clear();
+		std::vector<Eigen::Vector3d>().swap(positions);
+
+		uvs.clear();
+		std::vector<Eigen::Vector3d>().swap(uvs);
+
+		normals.clear();
+		std::vector<Eigen::Vector3d>().swap(normals);
+
+		normals.clear();
+		std::vector<Eigen::Vector3d>().swap(normals);
+
+		for (std::vector<Index> i : indices)
+		{
+			i.clear();
+			std::vector<Index>().swap(i);
+		}
+
+		indices.clear();
+		std::vector<std::vector<Index>>().swap(indices);
+
+		for (std::vector <int> n : neighbors)
+		{
+			n.clear();
+			std::vector <int>().swap(n);
+		}
+		
+		neighbors.clear();
+		std::vector<std::vector <int>>().swap(neighbors);
+	}
 };
 
 
 class MyUtil
 {
 public:
-	static bool ReadMeshWithoutOverwrap(const UStaticMeshComponent* sm, MeshData& meshData);
+	static bool ReadMeshWithoutOverwrap(const UStaticMeshComponent* sm, MeshData& meshData, float scale = 1);
 };

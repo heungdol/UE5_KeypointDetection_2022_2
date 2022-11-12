@@ -5,6 +5,7 @@
 
 class Edge {
 public:
+    
     // one of the two half edges associated with this edge
     HalfEdgeIter he;
     

@@ -27,6 +27,13 @@ double ComputeModelResolution(const std::vector<Eigen::Vector3d>& points,
 		}
 	}
 	resolution /= points.size();
+
+	indices.clear();
+	std::vector<int>().swap(indices);
+
+	distances.clear();
+	std::vector<double>().swap(distances);
+	
 	return resolution;
 }
 
@@ -37,6 +44,8 @@ Eigen::Matrix3d ComputeCovariance(const std::vector<Eigen::Vector3d> &points,
 	if (indices.empty()) {
 		return Eigen::Matrix3d::Identity();
 	}
+
+	// TODO 매트릭스 메모리 누수 확인
 	Eigen::Matrix3d covariance;
 	Eigen::Matrix<double, 9, 1> cumulants;
 	cumulants.setZero();
@@ -62,6 +71,7 @@ Eigen::Matrix3d ComputeCovariance(const std::vector<Eigen::Vector3d> &points,
 	covariance(2, 0) = covariance(0, 2);
 	covariance(1, 2) = cumulants(7) - cumulants(1) * cumulants(2);
 	covariance(2, 1) = covariance(1, 2);
+
 	return covariance;
 }
 
@@ -102,6 +112,7 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
         //         salient_radius, non_max_radius);
     }
 	eigenValues.clear();
+	vector<double>().swap(eigenValues);
 
 //#pragma omp parallel for schedule(static) shared(third_eigen_values)
     for (int i = 0; i < (int)input.size(); i++) {
@@ -133,7 +144,15 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
     		eigenValues.push_back(0);
     	}
 
+    	cov.Zero();
+    	
     	//cout <<  (e1c) << ", " << e2c << ", " << e3c << std::endl;
+
+    	indices.clear ();
+    	std::vector<int> ().swap(indices);
+    	
+    	dist.clear();
+    	std::vector<double> ().swap(dist);
     }
 
     std::vector<int> kp_indices = std::vector<int> ();
@@ -149,8 +168,16 @@ std::vector<int> AMyKeypointDetector_ISS::ComputeISSKeypoints(
             if (nb_neighbors >= min_neighbors && IsLocalMaxima(i, nn_indices, eigenValues)) {
                 kp_indices.push_back (i);
             }
+
+        	nn_indices.clear ();
+        	std::vector<int> ().swap(nn_indices);
+    	
+        	dist.clear();
+        	std::vector<double> ().swap(dist);
         }
     }
+    
+	
 
     // utility::LogDebug("[ComputeISSKeypoints] Extracted {} keypoints",
     //                   kp_indices.size());
@@ -186,7 +213,7 @@ EVertexType AMyKeypointDetector_ISS::GetVertexType(int index, const int depth, c
 		} 
 		else
 		{
-			for (int u : meshData.neighbors[v].neighborIndices)
+			for (int u : meshData.neighbors[v])
 			{
 				if (!visited[u])
 				{
@@ -198,6 +225,13 @@ EVertexType AMyKeypointDetector_ISS::GetVertexType(int index, const int depth, c
 			}
 		}
 	}
+
+	// 초기화
+	while (!queue.empty())
+		queue.pop();
+	
+	visited.clear();
+	std::unordered_map<int, bool>().swap(visited);
 	
 	// 얻은 주변 인덱스를 이용하여 Type 계산
 	if (neighborIndices.size() == 0)
@@ -232,6 +266,9 @@ EVertexType AMyKeypointDetector_ISS::GetVertexType(int index, const int depth, c
 			ret = EVertexType::VERTEX_SINK;
 		}
 	}
+
+	neighborIndices.clear();
+	std::vector<int>().swap(neighborIndices);
 
 	return ret;
 }
@@ -277,6 +314,8 @@ void AMyKeypointDetector_ISS::OnConstruction(const FTransform& Transform)
 		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 		vrts_selected.clear();
+		vector <int>().swap(vrts_selected);
+		
 		vrts_postSelected.Empty();
 		
 		vrtLocs_postSelected.Empty();
@@ -304,15 +343,23 @@ void AMyKeypointDetector_ISS::InitKeypointDetection()
 {
 	Super::InitKeypointDetection();
 
-	meshData.indices.clear();
-	meshData.normals.clear();
-	meshData.positions.clear();
-	meshData.uvs.clear();
+	// meshData.indices.clear();
+	// meshData.normals.clear();
+	// meshData.positions.clear();
+	// meshData.uvs.clear();
+
+	meshData.Clear();
+	eigenValues.clear ();
+	vector<double>().swap(eigenValues);
+	
 
 	if (!MyUtil::ReadMeshWithoutOverwrap(m_pMeshCom, meshData))
 		return;
 		
 	// iss
+	vrts_selected.clear();
+	std::vector <int>().swap(vrts_selected);
+	
 	vrts_selected = ComputeISSKeypoints(meshData.positions, m_saliencyRaidus, m_maxRadius, m_gamma_21, m_gamma_32, m_minNeighbors);
 
 	for (int ind : vrts_selected)
