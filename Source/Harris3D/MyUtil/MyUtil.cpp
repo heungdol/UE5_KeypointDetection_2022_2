@@ -1,7 +1,11 @@
 ﻿#include "MyUtil.h"
 
+
 bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData& meshData, float scale)
 {
+    if (sm == NULL)
+        return false;
+    
      // Static Mesh 정보 가져오기
     TArray <FVector> verts;
     TArray <int> tris;
@@ -12,7 +16,7 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
     UKismetProceduralMeshLibrary::GetSectionFromStaticMesh(sm->GetStaticMesh(), 0, 0, verts, tris, nors, uvs, tans);
     
     // 버텍스 개수 판단
-    if (verts.Num() <= 0 || verts.Num() > 50000)
+    if (verts.Num() <= 0 || verts.Num() > VERTEXNUM_MAX)
         return false;
 
     std::vector<int> overlappingVert;
@@ -44,6 +48,7 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
     // 버텍스 설정
     // UV 설정
     // 노멀 설정
+    // BoundingBox 설정
     for (int i = 0; i < verts.Num(); i++)
     {
         if (overlappingVert [i] != i)
@@ -52,6 +57,20 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
         meshData.positions.push_back(Eigen::Vector3d(verts[i].X, verts[i].Y, verts[i].Z) * scale);
         meshData.uvs.push_back(Eigen::Vector3d(uvs[i].X, uvs[i].Y,0));
         meshData.normals.push_back(Eigen::Vector3d(nors[i].X, nors[i].Y, nors[i].Z));
+        
+        if (meshData.boundingBox_max.X < verts [i].X)
+            meshData.boundingBox_max.X = verts [i].X;
+        if (meshData.boundingBox_max.Y < verts [i].Y)
+            meshData.boundingBox_max.Y = verts [i].Y;
+        if (meshData.boundingBox_max.Z < verts [i].Z)
+            meshData.boundingBox_max.Z = verts [i].Z;
+            
+        if (meshData.boundingBox_min.X > verts [i].X)
+            meshData.boundingBox_min.X = verts [i].X;
+        if (meshData.boundingBox_min.Y > verts [i].Y)
+            meshData.boundingBox_min.Y = verts [i].Y;
+        if (meshData.boundingBox_min.Z > verts [i].Z)
+            meshData.boundingBox_min.Z = verts [i].Z;
 
         // mesh.verts.push_back(verts[i]);
         // mesh.nors.push_back(nors[i]);
@@ -119,4 +138,23 @@ bool MyUtil::ReadMeshWithoutOverwrap (const  UStaticMeshComponent* sm, MeshData&
         meshData.neighbors [tris [i+2]].push_back(tris [i+1]);
     }
     return true;
+}
+
+bool MyUtil::IsValidVertexByNormal(Eigen::Vector3d nor)
+{
+    FVector input = FVector (nor[0], nor[1], nor[2]);
+
+    return IsValidVertexByNormal(input);
+}
+
+bool MyUtil::IsValidVertexByNormal(FVector normal)
+{
+    bool ret = false;
+
+    double dotUpVector = FVector::UpVector.Dot(normal);
+
+    if (DOTUPVECTOR_MIN <= dotUpVector && dotUpVector < DOTUPVECTOR_MAX)
+        return true;
+
+    return ret;
 }

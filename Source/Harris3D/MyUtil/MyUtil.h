@@ -1,6 +1,23 @@
 ﻿#pragma once
 #include <ThirdParty/Eigen/Eigen/Core>
 #include "KismetProceduralMeshLibrary.h"
+#include <limits>
+
+#define DOTUPVECTOR_MAX 0.173648
+#define DOTUPVECTOR_MIN -0.342020
+#define VERTEXNUM_MAX 50000
+
+class MyUtil;
+class Index;
+class MeshData;
+
+class MyUtil
+{
+public:
+	static bool ReadMeshWithoutOverwrap(const UStaticMeshComponent* sm, MeshData& meshData, float scale = 1);
+	static bool IsValidVertexByNormal (Eigen::Vector3d);
+	static bool IsValidVertexByNormal (FVector normal);
+};
 
 class Index {
 public:
@@ -24,29 +41,6 @@ public:
 	int normal;
 };
 
-// class VertexNeighbor
-// {
-// public:
-// 	int index;
-// 	std::vector <int> neighborIndices = std::vector <int> {};
-//
-// 	/*void SetIndex (int i)
-// 	{
-// 		index = i;
-// 	}
-//
-// 	void AddNeighbor (int i)
-// 	{
-// 		neighbors.push_back(i);
-// 	}
-//
-// 	std::vector <int>& GetNeighbors ()
-// 	{
-// 		return neighbors;
-// 	}*/
-// };
-
-
 class MeshData {
 public:
 	std::vector<Eigen::Vector3d> positions;
@@ -54,28 +48,8 @@ public:
 	std::vector<Eigen::Vector3d> normals;
 	std::vector<std::vector<Index>> indices;   // 3개 단위
 	std::vector <std::vector <int>> neighbors;
-
-	double GetArea ()
-	{
-		double ret = 0;
-
-		for (std::vector<Index> index : indices)
-		{
-			Eigen::Vector3d v0 = positions[index[0].position];
-			Eigen::Vector3d v1 = positions[index[1].position];
-			Eigen::Vector3d v2 = positions[index[2].position];
-
-			Eigen::Vector3d a = v1 - v0;
-			Eigen::Vector3d b = v2 - v0;
-
-			Eigen::Vector3d cross = a.cross(b);
-
-			ret += abs (cross.norm()) * 0.5;
-		}
-
-		ret *= 0.01 * 0.01;
-		return ret;
-	}
+	FVector boundingBox_max;
+	FVector boundingBox_min;
 
 	void Clear ()
 	{
@@ -108,12 +82,86 @@ public:
 		
 		neighbors.clear();
 		std::vector<std::vector <int>>().swap(neighbors);
+
+		boundingBox_max = FVector(-std::numeric_limits<double>::infinity());
+		boundingBox_min = FVector(std::numeric_limits<double>::infinity());
+	}
+
+	double GetArea ()
+	{
+		double ret = 0;
+
+		for (std::vector<Index> index : indices)
+		{
+			Eigen::Vector3d v0 = positions[index[0].position];
+			Eigen::Vector3d v1 = positions[index[1].position];
+			Eigen::Vector3d v2 = positions[index[2].position];
+
+			Eigen::Vector3d a = v1 - v0;
+			Eigen::Vector3d b = v2 - v0;
+
+			Eigen::Vector3d cross = a.cross(b);
+
+			ret += abs (cross.norm()) * 0.5;
+		}
+
+		ret *= 0.01 * 0.01;
+		return ret;
+	}
+
+	double GetArea_Valid ()
+	{
+		double ret = 0;
+
+		for (std::vector<Index> index : indices)
+		{
+			if (!MyUtil::IsValidVertexByNormal (normals [index[0].position])
+				|| !MyUtil::IsValidVertexByNormal (normals [index[1].position])
+				|| !MyUtil::IsValidVertexByNormal (normals [index[2].position]))
+			{
+				continue;
+			}
+			
+			Eigen::Vector3d v0 = positions[index[0].position];
+			Eigen::Vector3d v1 = positions[index[1].position];
+			Eigen::Vector3d v2 = positions[index[2].position];
+
+			Eigen::Vector3d a = v1 - v0;
+			Eigen::Vector3d b = v2 - v0;
+
+			Eigen::Vector3d cross = a.cross(b);
+
+			ret += abs (cross.norm()) * 0.5;
+		}
+
+		ret *= 0.01 * 0.01;
+
+		return ret;
+	}
+
+	int GetTotalVertexNumber ()
+	{
+		return positions.size();
+	}
+
+	int GetTotalVertexNumber_Valid ()
+	{
+		int ret = 0;
+
+		for (int i = 0; i < normals.size(); i++)
+		{
+			if (MyUtil::IsValidVertexByNormal(normals[i]))
+				ret++;
+		}
+		
+		return ret;
+	}
+
+	FVector GetBoundingBoxSize ()
+	{
+		return boundingBox_max - boundingBox_min;
 	}
 };
 
 
-class MyUtil
-{
-public:
-	static bool ReadMeshWithoutOverwrap(const UStaticMeshComponent* sm, MeshData& meshData, float scale = 1);
-};
+
