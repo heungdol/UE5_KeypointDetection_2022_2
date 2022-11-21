@@ -16,6 +16,7 @@ void AMyKeypointDetector_HKS::OnConstruction(const FTransform& Transform)
 
 		myMesh.Clear ();
 		myMesh = Mesh (m_pMeshCom);
+		myDescriptor = Descriptor_HKS(&myMesh, m_t, m_depth);
 
 		// 만약 적절하지 않은 모델이라면
 		// (버텍스 개수가 50000개 이상인 경우)
@@ -40,7 +41,6 @@ void AMyKeypointDetector_HKS::OnConstruction(const FTransform& Transform)
 		currentVrtNors_postSelected.Empty();
 		
 		InitKeypointDetection ();
-
 		InitSelectedVertexLocation ();
 		UpdateSelectedVertexLocation();
 	}
@@ -57,7 +57,8 @@ void AMyKeypointDetector_HKS::InitKeypointDetection()
 {
 	Super::InitKeypointDetection();
 	
-	CalculateHKS ();
+	myDescriptor.InitKeypoints(vrts_selected, vrts_postSelected, vrtLocs_postSelected
+		, vrtNors_postSelected, vrtTypes_postSelected, vrtNorTypes_postSelected);
 }
 
 void AMyKeypointDetector_HKS::InitSelectedVertexLocation()
@@ -69,16 +70,17 @@ void AMyKeypointDetector_HKS::InitSelectedVertexLocation()
 	// 선택된 점 위치 확인
 	for (int i = 0; i < vrts_postSelected.Num(); i++)
 	{
-		vrtLocs_postSelected.Push(myMesh.GetVertexLocByIndex(vrts_postSelected[i]));
-		currentVrtLocs_postSelected.Push(myMesh.GetVertexLocByIndex(vrts_postSelected[i]));
-		
-		vrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
-		currentVrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
+		vrtLocs_postSelected.Push(myDescriptor.mesh->GetVertexLocByIndex(vrts_postSelected[i]));
+		vrtNors_postSelected.Push (myDescriptor.mesh->GetVertexNorByIndex (vrts_postSelected[i]));
 
-		EVertexType vertexType = myMesh.vertices[vrts_postSelected[i]].getVertexType(myMesh.meshData, _dotFlat0, _dotFlat1, m_vertexType_depth);
-		EVertexNormalType vertexNormalType = myMesh.vertices[vrts_postSelected[i]].getVertexNormalType(myMesh.meshData, _dotUp, _dotDown);
-		vrtTypes_postSelected.Push(vertexType);
-		vrtNorTypes_postSelected.Push(vertexNormalType);
+		currentVrtLocs_postSelected.Push(myDescriptor.mesh->GetVertexLocByIndex(vrts_postSelected[i]));
+		currentVrtNors_postSelected.Push (myDescriptor.mesh->GetVertexNorByIndex (vrts_postSelected[i]));
+
+		
+		// EVertexType vertexType = mesh->vertices[vrts_postSelected[i]].getVertexType(mesh->meshData, _dotFlat0, _dotFlat1, m_vertexType_depth);
+		// EVertexNormalType vertexNormalType = mesh->vertices[vrts_postSelected[i]].getVertexNormalType(myMesh.meshData, _dotUp, _dotDown);
+		// vrtTypes_postSelected.Push(vertexType);
+		// vrtNorTypes_postSelected.Push(vertexNormalType);
 	}
 
 	for (int i = 0; i < vrtLocs_postSelected.Num(); i++)
@@ -94,21 +96,4 @@ void AMyKeypointDetector_HKS::InitSelectedVertexLocation()
 	}
 
 	PrintDetectionInfo ();
-}
-
-void AMyKeypointDetector_HKS::CalculateHKS()
-{
-	if (myMesh.GetIsEnableModel() == false)
-		return;
-	
-	myDescriptor = Descriptor(&myMesh);
-	myDescriptor.compute(HKS);
-
-	for (VertexCIter v = myMesh.vertices.begin(); v != myMesh.vertices.end(); v++) {
-		if (v->isFeature(m_t, m_depth))
-			vrts_selected.push_back(v->index);
-	}
-
-	for (int vrts : vrts_selected)
-		vrts_postSelected.Add(vrts);
 }

@@ -3,6 +3,7 @@
 
 Mesh::Mesh()
 {
+    Clear ();
 }
 
 Mesh::Mesh(const UStaticMeshComponent* sm)

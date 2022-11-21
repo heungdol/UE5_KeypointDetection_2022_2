@@ -110,8 +110,8 @@ public:
 	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
 	int m_ringSize = 5;
 	
-	// UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
-	// double m_fraction = 0.01;
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
+	double m_fraction = 0.01;
 
 	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
 	double m_k = 0.04;

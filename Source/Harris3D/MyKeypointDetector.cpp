@@ -80,9 +80,12 @@ void AMyKeypointDetector::UpdateSelectedVertexLocation()
 
 				if (m_debugDraw == true)
 				{
-					FColor color = FColorList::Red;
+					FColor color = FColorList::Orange;
+					DrawDebugBox(GetWorld()
+						, currentVrtLocs_postSelected[i], FVector(1, 1, 1), FQuat::Identity
+						, color, false, 0.1, 0, 1);
 
-					switch (vrtTypes_postSelected[i])
+					/*switch (vrtTypes_postSelected[i])
 					{
 						default:
 							break;
@@ -95,9 +98,9 @@ void AMyKeypointDetector::UpdateSelectedVertexLocation()
 					case EVertexType::VERTEX_SINK:
 						color = FColorList::Green;
 						break;
-					}
+					}*/
 					
-					if (vrtNorTypes_postSelected[i] == EVertexNormalType::VERTEX_PARALLEL)
+					/*if (vrtNorTypes_postSelected[i] == EVertexNormalType::VERTEX_PARALLEL)
 					{
 						DrawDebugBox(GetWorld()
 						, currentVrtLocs_postSelected[i], FVector(1, 1, 1), FQuat::Identity
@@ -108,11 +111,8 @@ void AMyKeypointDetector::UpdateSelectedVertexLocation()
 						DrawDebugLine(GetWorld()
 						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
 						, color, false, 0.1, 0, 1);
-					}
-					
-					
+					}*/
 				}
-				
 			}
 
 			actorLocation = GetActorLocation();

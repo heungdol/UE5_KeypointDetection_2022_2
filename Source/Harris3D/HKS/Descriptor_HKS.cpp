@@ -1,4 +1,4 @@
-#include "Descriptor.h"
+#include "Descriptor_HKS.h"
 #include "../MyUtil/Mesh.h"
 #include "../MyUtil/MeshIO.h"
 #include "../MyUtil/MultiresMesh.h"
@@ -13,12 +13,12 @@
 
 #define N 10
 
-Descriptor::Descriptor()
+Descriptor_HKS::Descriptor_HKS()
 {
 }
 
-Descriptor::Descriptor(Mesh *mesh0):
-mesh(mesh0)
+Descriptor_HKS::Descriptor_HKS(Mesh *mesh0, float t, int depth):
+mesh(mesh0), m_t(t), m_depth(depth)
 {
     
 }
@@ -73,7 +73,7 @@ void buildAreaMatrix(Mesh *mesh, Eigen::SparseMatrix<double>& A, const double sc
     A *= scale/sum;
 }
 
-void Descriptor::computeEig(int K)
+void Descriptor_HKS::computeEig(int K)
 {
     int v = (int)mesh->vertices.size();
         
@@ -131,7 +131,7 @@ void Descriptor::computeEig(int K)
     
 }
 
-void Descriptor::computeHks()
+void Descriptor_HKS::computeHks()
 {
     const int K = (int)evals.size();
     const double ln = 4*log(10);
@@ -184,26 +184,6 @@ void extrapolateEvals(double& xhat, double& yhat, double& m, const Eigen::Vector
     m /= den;
 }
 
-/*void computeLaplacians(std::vector<Eigen::SparseMatrix<double>>& Ls,
-                       std::vector<Eigen::SparseMatrix<double>>& As,
-                       const MultiresMesh& mrm)
-{
-    double scale = mrm.lod(0)->vertices.size();
-    for (int l = 0; l < mrm.numLods(); l++) {
-        Mesh *lod = mrm.lod(l);
-        int v = (int)lod->vertices.size();
-        
-        // resize
-        Ls[l].resize(v, v); As[l].resize(v, v);
-        
-        // compute laplacian and area matrices
-        buildAdjacency(lod, Ls[l]);
-        buildAreaMatrix(lod, As[l], scale);
-        Ls[l] = As[l].cwiseInverse()*Ls[l];
-    }
-}
-*/
-
 void computeBinomialEntries(std::vector<Eigen::SparseMatrix<double>>& binomialSeries,
                             const Eigen::SparseMatrix<double>& L)
 {
@@ -239,109 +219,6 @@ void sparsify(Eigen::SparseMatrix<double>& Kt, double eps)
     }
     Kt.prune(0.0);
 }
-
-/*void Descriptor::computeFastHks()
-{
-    const int d = 2;
-    const int C = 1000;
-    const double c = 0.2;
-    const double reps = 1e-4;
-    const double seps = 1e-6;
-    const int bN = 15;
-    const std::vector<int> ts = {4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048};
-    
-    // initialize descriptors
-    for (VertexIter v = mesh->vertices.begin(); v != mesh->vertices.end(); v++) {
-        v->descriptor = Eigen::VectorXd::Zero(N);
-    }
-    
-    // extrapolate eigenvalues
-    double xhat, yhat, m;
-    extrapolateEvals(xhat, yhat, m, evals);
-    
-    // 1. build mutliresolution structure
-    MultiresMesh mrm(mesh, d, C);
-    mrm.build();
-    
-    // build laplacian and area matrices
-    int lods = mrm.numLods();
-    std::vector<Eigen::SparseMatrix<double>> Ls(lods), As(lods);
-    computeLaplacians(Ls, As, mrm);
-    
-    // TODO: cache Kt based on lod l, t
-    for (int i = 0; i < N; i++) {
-        // 2. choose coarsest resolution level l s.t. cn > r(t)
-        int r = 0, l = lods-1;
-        while (exp(-(yhat - m*(r - xhat))*ts[i]) > reps) r++;
-        while (l > 0 && c*mrm.lod(l)->vertices.size() < r) l--;
-        
-        // 3. compute sparse heat kernel on l
-        int v = (int)mrm.lod(l)->vertices.size();
-        Eigen::SparseMatrix<double> Kt(v, v);
-        std::vector<Eigen::SparseMatrix<double>> binomialSeries(bN+1);
-        double t1 = 0.001, t = 0.0;
-        int s = 0;
-        
-        // compute Kt for small t
-        computeBinomialEntries(binomialSeries, Ls[l]);
-        while ((binomialSeries[bN]*pow(exp(-t1) - 1, bN)).norm() < seps) t1 += 0.001;
-        while ((t = ts[i]/pow(2, s)) > t1) s++;
-        computeExponentialRepresentation(Kt, t, binomialSeries);
-        Kt = Kt*As[l].cwiseInverse();
-        
-        // compute Kt for ts[i]
-        for (int j = 0; j < s; j++) {
-            sparsify(Kt, seps);
-            Kt = Kt*As[l]*Kt;
-        }
-        
-        // 4. project sparse heat kernel on finest resolution level
-        Eigen::SparseMatrix<double> P = mrm.prolongationMatrix(l);
-        Kt = P*Kt*P.transpose();
-        
-        // set descriptor value for current time step
-        for (VertexIter v = mesh->vertices.begin(); v != mesh->vertices.end(); v++) {
-            v->descriptor(i) = Kt.coeffRef(v->index, v->index);
-        }
-    }
-}
-
-void Descriptor::computeWks()
-{
-    const int K = (int)evals.size();
-    Eigen::VectorXd logE(K);
-    for (int i = 0; i < K; i++) logE(i) = log(evals(i));
-    const double emin = logE(K-2);
-    const double emax = logE(0)/1.02;
-    const double step = (emax - emin) / N;
-    const double sigma22 = 2*pow(7*(emax - emin) / K, 2);
- 
-    for (VertexIter v = mesh->vertices.begin(); v != mesh->vertices.end(); v++) {
-        v->descriptor = Eigen::VectorXd::Zero(N);
-        Eigen::VectorXd C = Eigen::VectorXd::Zero(N);
-
-        for (int j = 0; j < K-1; j++) {
-            double phi2 = evecs(v->index, j)*evecs(v->index, j);
-            double e = emin;
-            double factor = 1.5;
-            
-            for (int i = 0; i < N; i++) {
-                double exponent = exp(-pow(e - logE(j), 2) / sigma22);
-                v->descriptor(i) += phi2*exponent;
-                C(i) += exponent;
-                e += factor*step;
-                
-                // take smaller steps with increasing e to bias es towards high frequency features
-                factor -= 0.1;
-            }
-        }
-        
-        // normalize
-        for (int i = 0; i < N; i++) {
-            v->descriptor(i) /= C(i);
-        }
-    }
-}*/
 
 double computeGaussCurvature(Mesh *mesh, Eigen::VectorXd& K)
 {
@@ -412,7 +289,7 @@ void buildSimpleAverager(Mesh *mesh, Eigen::SparseMatrix<double>& L)
     L.setFromTriplets(LTriplet.begin(), LTriplet.end());
 }
 
-void Descriptor::computeCurve()
+void Descriptor_HKS::computeCurve()
 {
 	std::vector<int> smoothLevels = {0, 1, 5, 20, 50};
 	 
@@ -453,7 +330,7 @@ void Descriptor::computeCurve()
 	}
 }
 
-void Descriptor::normalize()
+void Descriptor_HKS::normalize()
 {
     int n = (int)mesh->vertices[0].descriptor.size();
     for (int i = 0; i < n; i++) {
@@ -470,8 +347,33 @@ void Descriptor::normalize()
         }
     }
 }
+/*
+* vector <int> vrts_selected;
+TArray <int> vrts_postSelected;
 
-void Descriptor::compute(int descriptor)
+TArray <FVector> vrtLocs_postSelected;
+TArray <FVector> vrtNors_postSelected;
+TArray <EVertexType> vrtTypes_postSelected;
+TArray <EVertexNormalType> vrtNorTypes_postSelected;
+ */
+void Descriptor_HKS::InitKeypoints(std::vector<int>& vrts_selected, TArray<int>& vrts_postSelected, TArray<FVector>& vrtLocs_postSelected
+    , TArray<FVector>& vrtNors_postSelected, TArray<EVertexType>& vrtTypes_postSelected, TArray<EVertexNormalType>& vrtNorTypes_postSelected)
+{
+    if (mesh->GetIsEnableModel() == false)
+        return;
+    
+    compute(HKS);
+
+    for (VertexCIter v = mesh->vertices.begin(); v != mesh->vertices.end(); v++) {
+        if (v->isFeature(m_t, m_depth))
+            vrts_selected.push_back(v->index);
+    }
+
+    for (int vrts : vrts_selected)
+        vrts_postSelected.Add(vrts);
+}
+
+void Descriptor_HKS::compute(int descriptor)
 {
     // compute descriptor
     switch (descriptor) {
