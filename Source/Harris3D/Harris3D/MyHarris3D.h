@@ -7,6 +7,7 @@
 
 #include "MeshDescription.h"
 #include "MyMesh.h"
+#include "../MyUtil/KeypointDetectionBundle.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -26,14 +27,7 @@ public:
 
 	// Sets default values for this actor's properties
 	AMyHarris3D();
-
-	//virtual void PostInitializeComponents() override;
-	//virtual void PostActorCreated () override;
-
-	//virtual void PostLoad () override;
-	//virtual void PostInitProperties () override;
-	//virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-
+	
 	virtual string GetDetectorName()
 	{
 		return "Harris 3D";
@@ -63,7 +57,7 @@ protected:
 	bool m_update_first = false;
 
 public:
-	UPROPERTY(EditAnywhere, Category="Inspector")
+	UPROPERTY(EditAnywhere, Category="Inspector")  
 	bool m_update_click = false;
 	
 	UPROPERTY(EditAnywhere, Category="Inspector")
@@ -77,12 +71,6 @@ public:
 
 	UPROPERTY(EditAnywhere, Category="Inspector")
 	double m_k = 0.04;
-
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	//FColor m_color = FColor (255, 0, 0);
-
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	//double m_radius = 5;
 
 	UPROPERTY (VisibleAnywhere)
 	UStaticMeshComponent* m_pMeshCom;
@@ -149,13 +137,6 @@ public:
 	TArray <FVector> currentVrtLocs_overlapped;
 	TArray <FVector> currentVrtNors_overlapped;
 	
-	// 논문에 제시된 클러스터링은 사용하지 않음
-	//std::vector<int> selectedVrts_clustering;
-	//TArray <FVector> selectedVrtLocs_clustering;
-	//TArray <FVector> selectedVrtNors_clustering;
-	//TArray <FVector> currentSelectedVrtLocs_clustering;
-	//TArray <FVector> currentSelectedVrtNors_clustering;
-	
 	FVector actorLocation;
 	FVector actorScale;
 	FRotator actorRotation;
@@ -163,6 +144,8 @@ public:
 	MyMesh myMesh;
 	int ringSize;
 	vector<double> harrisRPoints;
+
+	KeypointDetectionBundle keypointDetectionBundle;
 
 	void InitMyHarris3D ();
 
@@ -177,8 +160,4 @@ public:
 
 	void InitSelectedVertexLocation ();
 	void UpdateSelectedVertexLocation ();
-
-	//UPROPERTY(BlueprintReadOnly, Category="Inspector")
-	//UFUNCTION(BlueprintCallable, Category="Inspector")
-	//EVertexType GetVertexTypeByIndex (int index);
 };
