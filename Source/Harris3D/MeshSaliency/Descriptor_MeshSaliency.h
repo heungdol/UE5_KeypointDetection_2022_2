@@ -7,8 +7,9 @@ using namespace std;
 class Descriptor_MeshSaliency
 {
 public:
-	Descriptor_MeshSaliency () {}
+	Descriptor_MeshSaliency (): myMesh(nullptr){}
 	Descriptor_MeshSaliency (Mesh* mesh, float cutoff) : myMesh(mesh), m_cutoffSaliency(cutoff) {};
+	~Descriptor_MeshSaliency() {}
 
 	virtual string GetDetectorName()
 	{

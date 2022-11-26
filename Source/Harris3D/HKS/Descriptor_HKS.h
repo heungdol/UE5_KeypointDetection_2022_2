@@ -14,9 +14,10 @@ using namespace std;
 class Descriptor_HKS {
 public:
     // constructor
-	Descriptor_HKS();
-    Descriptor_HKS(Mesh *mesh0, float t, int depth);
-    
+	Descriptor_HKS() : mesh{nullptr} {}
+    Descriptor_HKS(Mesh *mesh0, float t, int depth): mesh(mesh0), m_t(t), m_depth(depth) {}
+	~Descriptor_HKS() {}
+
     // compute
 	void compute(int descriptor);
                  // const std::string& eigFilename,

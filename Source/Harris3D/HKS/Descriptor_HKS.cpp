@@ -13,15 +13,6 @@
 
 #define N 10
 
-Descriptor_HKS::Descriptor_HKS()
-{
-}
-
-Descriptor_HKS::Descriptor_HKS(Mesh *mesh0, float t, int depth):
-mesh(mesh0), m_t(t), m_depth(depth)
-{
-    
-}
 void buildAdjacency(Mesh *mesh, Eigen::SparseMatrix<double>& W)
 {
     std::vector<Eigen::Triplet<double>> WTriplets;

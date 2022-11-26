@@ -6,7 +6,7 @@
 #include <ThirdParty/Eigen/Eigen/Geometry>
 #include <ThirdParty/Eigen/Eigen/Sparse>
 #include "Harris3D/MyUtil/Mesh.h"
-#include "KDTreeFlann.h"
+#include "../MyUtil/KDTreeFlann.h"
 
 using namespace std;
 
@@ -14,12 +14,12 @@ class Descriptor_ISS
 {
 public:
 
-	Descriptor_ISS () {}
+	Descriptor_ISS (): m_pMeshCom(nullptr), meshData(nullptr){}
 	Descriptor_ISS (UStaticMeshComponent* sm, MeshData* md
-		, double saliencyRadius, double maxRadius, double gamma21, double gamma32, int minNeighbors)
+	                , double saliencyRadius, double maxRadius, double gamma21, double gamma32, int minNeighbors)
 			: m_pMeshCom(sm), meshData(md), m_saliencyRaidus(saliencyRadius), m_maxRadius(maxRadius)
-	, m_gamma_21(gamma21), m_gamma_32(gamma32), m_minNeighbors(minNeighbors)
-	{}
+	, m_gamma_21(gamma21), m_gamma_32(gamma32), m_minNeighbors(minNeighbors) {}
+	~Descriptor_ISS () {}
 	
 	double m_saliencyRaidus = 1;
 	double m_maxRadius = 10;

@@ -7,10 +7,10 @@ using namespace std;
 class Descriptor_Harris3D
 {
 public:
-	Descriptor_Harris3D () {};
+	Descriptor_Harris3D (): myMesh(nullptr) {} ;
 	Descriptor_Harris3D (MyMesh* mm, int ringsize, double frac, double k)
-		: myMesh(mm), m_ringSize(ringsize), m_fraction(frac), m_k(k)
-	{}
+		: myMesh(mm), m_ringSize(ringsize), m_fraction(frac), m_k(k) {}
+	~Descriptor_Harris3D() {}
 	
 	virtual string GetDetectorName()
 	{
