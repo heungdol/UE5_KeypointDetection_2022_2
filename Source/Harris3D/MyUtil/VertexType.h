@@ -18,9 +18,11 @@ enum class EVertexNormalType : uint8
 	, VERTEX_DOWN 
 };
 
-
-class VertexType
+UENUM(BlueprintType)
+enum class EDetectorType : uint8
 {
-public:
-	
+	DT_HR
+	, DT_HKS
+	, DT_ISS
+	, DT_MS
 };
