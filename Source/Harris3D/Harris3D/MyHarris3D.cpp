@@ -94,7 +94,7 @@ void AMyHarris3D::OnConstruction(const FTransform& Transform)
 		currentVrtNors_postSelected.Empty();
 		vrtTypes_postSelected.Empty();
 
-		vrts_unselected.Empty();
+		/*vrts_unselected.Empty();
 		vrtLocs_unselected.Empty();
 		vrtNors_unselected.Empty();
 		currentVrtLocs_unselected.Empty();
@@ -104,7 +104,7 @@ void AMyHarris3D::OnConstruction(const FTransform& Transform)
 		vrtLocs_overlapped.Empty();
 		vrtNors_overlapped.Empty();
 		currentVrtLocs_overlapped.Empty();
-		currentVrtNors_overlapped.Empty();
+		currentVrtNors_overlapped.Empty();*/
 
 		switch (m_detectorType)
 		{
@@ -542,14 +542,14 @@ void AMyHarris3D::InitSelectedVertexLocation()
 		//vrtTypes_postSelected.Push (myMesh.vertices[vrts_postSelected[i]].GetVertexType());
 	}
 
-	for (int i = 0; i < vrts_unselected.Num(); i++)
+	/*for (int i = 0; i < vrts_unselected.Num(); i++)
 	{
 		vrtLocs_unselected.Push(meshData.GetVertexLocByIndex(vrts_unselected[i]));
 		currentVrtLocs_unselected.Push(meshData.GetVertexLocByIndex(vrts_unselected[i]));
 		
 		vrtNors_unselected.Push (meshData.GetVertexNorByIndex (vrts_unselected[i]));
 		currentVrtNors_unselected.Push (meshData.GetVertexNorByIndex (vrts_unselected[i]));
-	}
+	}*/
 
 	/*for (int i = 0; i < vrts_overlapped.Num(); i++)
 	{
@@ -572,7 +572,7 @@ void AMyHarris3D::InitSelectedVertexLocation()
 		currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
 	}
 
-	for (int i = 0; i < vrtLocs_unselected.Num(); i++)
+	/*for (int i = 0; i < vrtLocs_unselected.Num(); i++)
 	{
 		//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("OHa"));
 
@@ -582,7 +582,7 @@ void AMyHarris3D::InitSelectedVertexLocation()
 		
 		currentVrtLocs_unselected [i] = actorLocation + offset;
 		currentVrtNors_unselected [i] = actorRotation.RotateVector(vrtNors_unselected [i]);
-	}
+	}*/
 
 	/*for (int i = 0; i < selectedVrts_clustering.size(); i++)
 	{

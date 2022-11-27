@@ -162,6 +162,16 @@ public:
 		return boundingBox_max - boundingBox_min;
 	}
 
+	FVector GetBoundingBoxCoord_Min ()
+	{
+		return boundingBox_min;
+	}
+
+	FVector GetBoundingBoxCoord_Max ()
+	{
+		return boundingBox_max;
+	}
+
 	FVector GetVertexLocByIndex (int ii)
 	{
 		if (positions.size() <= ii)

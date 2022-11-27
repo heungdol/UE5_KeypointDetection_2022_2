@@ -134,17 +134,17 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Inspector")
 	TArray <EVertexNormalType> vrtNorTypes_postSelected;
 
-	TArray <int> vrts_unselected;
-	TArray <FVector> vrtLocs_unselected;
-	TArray <FVector> vrtNors_unselected;
-	TArray <FVector> currentVrtLocs_unselected;
-	TArray <FVector> currentVrtNors_unselected;
-
-	TArray <int> vrts_overlapped;
-	TArray <FVector> vrtLocs_overlapped;
-	TArray <FVector> vrtNors_overlapped;
-	TArray <FVector> currentVrtLocs_overlapped;
-	TArray <FVector> currentVrtNors_overlapped;
+	// TArray <int> vrts_unselected;
+	// TArray <FVector> vrtLocs_unselected;
+	// TArray <FVector> vrtNors_unselected;
+	// TArray <FVector> currentVrtLocs_unselected;
+	// TArray <FVector> currentVrtNors_unselected;
+	//
+	// TArray <int> vrts_overlapped;
+	// TArray <FVector> vrtLocs_overlapped;
+	// TArray <FVector> vrtNors_overlapped;
+	// TArray <FVector> currentVrtLocs_overlapped;
+	// TArray <FVector> currentVrtNors_overlapped;
 	
 	FVector actorLocation;
 	FVector actorScale;

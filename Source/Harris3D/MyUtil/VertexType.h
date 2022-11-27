@@ -21,7 +21,8 @@ enum class EVertexNormalType : uint8
 UENUM(BlueprintType)
 enum class EDetectorType : uint8
 {
-	DT_HR
+	NONE
+	, DT_HR
 	, DT_HKS
 	, DT_ISS
 	, DT_MS
