@@ -161,6 +161,23 @@ public:
 	{
 		return boundingBox_max - boundingBox_min;
 	}
+
+	FVector GetVertexLocByIndex (int ii)
+	{
+		if (positions.size() <= ii)
+			return FVector (0, 0, 0);
+
+		return FVector (positions[ii].x(), positions[ii].y(), positions[ii].z());
+
+	}
+	
+	FVector GetVertexNorByIndex (int ii)
+	{
+		if (normals.size() <= ii)
+			return FVector (0, 0, 0);
+
+		return FVector (normals [ii].x(), normals [ii].y(), normals [ii].z());
+	}
 };
 
 

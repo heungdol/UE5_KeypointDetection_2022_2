@@ -71,23 +71,74 @@ void AMyHarris3D::OnConstruction(const FTransform& Transform)
 	// 첫 실행 혹은 에디터에서 갱신 bool를 활성화할 시
 	if (m_update_first == false || m_update_click == true)
 	{
-		// test
-		/*if (m_update_first == false)
-			cout << "first init" << endl;
-		if (m_update_click == true)
-			cout << "click to init" << endl;*/
-		
 		m_update_first = true;
 		m_update_click = false;
 		
-		UpdateHarris3D ();
+		// 메쉬 판단
+		if (!m_pMeshCom)
+			return;
+
+		// 메쉬 초기화
+		if (keypointDetectionBundle.InitMesh(m_pMeshCom, &meshData) == false)
+			return;
+
+		// 콜리젼 설정
+		m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+		vrts_selected.clear();
+		
+		vrts_postSelected.Empty();
+		vrtLocs_postSelected.Empty();
+		vrtNors_postSelected.Empty();
+		currentVrtLocs_postSelected.Empty();
+		currentVrtNors_postSelected.Empty();
+		vrtTypes_postSelected.Empty();
+
+		vrts_unselected.Empty();
+		vrtLocs_unselected.Empty();
+		vrtNors_unselected.Empty();
+		currentVrtLocs_unselected.Empty();
+		currentVrtNors_unselected.Empty();
+
+		vrts_overlapped.Empty();
+		vrtLocs_overlapped.Empty();
+		vrtNors_overlapped.Empty();
+		currentVrtLocs_overlapped.Empty();
+		currentVrtNors_overlapped.Empty();
+
+		switch (m_detectorType)
+		{
+		case EDetectorType::DT_HR:
+			keypointDetectionBundle.SetParameters_Harris (m_ringSize, m_fraction, m_k);
+			keypointDetectionBundle.InitKeypoints_Harris(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected
+				, vrtTypes_postSelected, vrtNorTypes_postSelected);
+			break;
+		case EDetectorType::DT_HKS:
+			keypointDetectionBundle.SetParameters_HKS (m_t, m_depth);
+			keypointDetectionBundle.InitKeypoints_HKS(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected
+				, vrtTypes_postSelected, vrtNorTypes_postSelected);
+			break;
+		case EDetectorType::DT_ISS:
+			keypointDetectionBundle.SetParameters_ISS (m_saliencyRaidus, m_maxRadius, m_gamma_21, m_gamma_32, m_minNeighbors);
+			keypointDetectionBundle.InitKeypoints_ISS(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected
+				, vrtTypes_postSelected, vrtNorTypes_postSelected);
+			break;
+		case EDetectorType::DT_MS:
+			keypointDetectionBundle.SetParameters_MeshSaliency(m_cutoffSaliency);
+			keypointDetectionBundle.InitKeypoints_MeshSaliency(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected
+				, vrtTypes_postSelected, vrtNorTypes_postSelected);
+			break;
+		}
+
+		InitSelectedVertexLocation ();
+		UpdateSelectedVertexLocation();
 	}
 }
 
-bool AMyHarris3D::GetIsUpdated()
-{
-	return m_update_first;
-}
+// bool AMyHarris3D::GetIsUpdated()
+// {
+// 	return m_update_first;
+// }
 
 // Sets default values
 AMyHarris3D::AMyHarris3D()
@@ -98,54 +149,11 @@ AMyHarris3D::AMyHarris3D()
 	m_pMeshCom = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MESH"));
 	RootComponent = m_pMeshCom;
 }
-
-void AMyHarris3D::UpdateHarris3D ()
-{
-	// 메쉬 판단
-	if (!m_pMeshCom)
-		return;
-	
-	myMesh = MyMesh (m_pMeshCom);
-
-	// 만약 적절하지 않은 모델이라면
-	// (버텍스 개수가 50000개 이상인 경우)
-	if (myMesh.GetIsEnableModel() == false)
-		return;	
-
-	// 콜리젼 설정
-	m_pMeshCom->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	vrts_selected.clear();
-	
-	vrts_postSelected.Empty();
-	vrtLocs_postSelected.Empty();
-	vrtNors_postSelected.Empty();
-	currentVrtLocs_postSelected.Empty();
-	currentVrtNors_postSelected.Empty();
-	vrtTypes_postSelected.Empty();
-
-	vrts_unselected.Empty();
-	vrtLocs_unselected.Empty();
-	vrtNors_unselected.Empty();
-	currentVrtLocs_unselected.Empty();
-	currentVrtNors_unselected.Empty();
-
-	vrts_overlapped.Empty();
-	vrtLocs_overlapped.Empty();
-	vrtNors_overlapped.Empty();
-	currentVrtLocs_overlapped.Empty();
-	currentVrtNors_overlapped.Empty();
-
-	harrisRPoints.clear();
-
-	InitMyHarris3D();
-	CalculateHarrisResponse();
-	CalculateNMS ();
-	CalculateVertexType ();
-
-	InitSelectedVertexLocation ();
-	UpdateSelectedVertexLocation();
-}
+//
+// void AMyHarris3D::UpdateHarris3D ()
+// {
+// 	
+// }
 
 // Called when the game starts or when spawned
 void AMyHarris3D::BeginPlay()
@@ -166,24 +174,9 @@ void AMyHarris3D::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void AMyHarris3D::InitMyHarris3D()
-{
-	//AMyHarris3D::myMesh = msh;
-	//AMyHarris3D::typeSelection = (int)m_type;
-
-	// 링 사이즈
-	AMyHarris3D::ringSize = m_ringSize;
-
-	// 전체 버택스 비율로 내어 선택할 개수를 구할 때 사용되는 상수
-	AMyHarris3D::fraction_constant = m_fraction;
-
-	
-	AMyHarris3D::k_parameter = m_k;
-}
-
 
 //calculates the Harris reponse of each vertex
-void AMyHarris3D::CalculateHarrisResponse()
+/*void AMyHarris3D::CalculateHarrisResponse()
 {
 	int vertexSize = myMesh.vertices.size();
 	
@@ -197,7 +190,7 @@ void AMyHarris3D::CalculateHarrisResponse()
 			//harrisRPoints.push_back(harrisRPoints[myMesh.overlappingVert[indexVertex]]);
 			harrisRPoints.push_back(1000);
 			continue;
-		}*/
+		}#1#
 
 		vector<double> x_coord, y_coord, z_coord;
 		//caculate the neighbourhood
@@ -338,7 +331,7 @@ void AMyHarris3D::CalculateHarrisResponse()
 		/*if (nV != myMesh.overlappingVert[nV])
 		{
 			continue;
-		}*/
+		}#1#
 		
 		bool localMaxima = GetIsLocalMaxima(nV);
 		if (localMaxima == true)
@@ -495,12 +488,12 @@ void AMyHarris3D::CalculateNMS ()
 		vrts_postSelected.Add(vrts_selected[index]);
 	}
 	
-	/*// 오버랩 확인
+	/#1#/ 오버랩 확인
 	for (int i = 0; i < myMesh.overlappingVert.size(); i++)
 	{
 		if (i != myMesh.overlappingVert[i])
 			vrts_overlapped.Add(i);
-	}*/
+	}#1#
 
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Total Vertex Number: " + FString::FromInt(myMesh.vertices.size())));
 	//GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Overlapped Vertex Number: " + FString::FromInt(vrts_overlapped.Num())));
@@ -529,7 +522,7 @@ bool AMyHarris3D::GetIsLocalMaxima(unsigned int vertexIndex)
 		}
 	}
 	return true;
-}
+}*/
 
 void AMyHarris3D::InitSelectedVertexLocation()
 {
@@ -540,22 +533,22 @@ void AMyHarris3D::InitSelectedVertexLocation()
 	// 선택된 점 위치 확인
 	for (int i = 0; i < vrts_postSelected.Num(); i++)
 	{
-		vrtLocs_postSelected.Push(myMesh.GetVertexLocByIndex(vrts_postSelected[i]));
-		currentVrtLocs_postSelected.Push(myMesh.GetVertexLocByIndex(vrts_postSelected[i]));
+		vrtLocs_postSelected.Push(meshData.GetVertexLocByIndex(vrts_postSelected[i]));
+		currentVrtLocs_postSelected.Push(meshData.GetVertexLocByIndex(vrts_postSelected[i]));
 		
-		vrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
-		currentVrtNors_postSelected.Push (myMesh.GetVertexNorByIndex (vrts_postSelected[i]));
+		vrtNors_postSelected.Push (meshData.GetVertexNorByIndex (vrts_postSelected[i]));
+		currentVrtNors_postSelected.Push (meshData.GetVertexNorByIndex (vrts_postSelected[i]));
 
 		//vrtTypes_postSelected.Push (myMesh.vertices[vrts_postSelected[i]].GetVertexType());
 	}
 
 	for (int i = 0; i < vrts_unselected.Num(); i++)
 	{
-		vrtLocs_unselected.Push(myMesh.GetVertexLocByIndex(vrts_unselected[i]));
-		currentVrtLocs_unselected.Push(myMesh.GetVertexLocByIndex(vrts_unselected[i]));
+		vrtLocs_unselected.Push(meshData.GetVertexLocByIndex(vrts_unselected[i]));
+		currentVrtLocs_unselected.Push(meshData.GetVertexLocByIndex(vrts_unselected[i]));
 		
-		vrtNors_unselected.Push (myMesh.GetVertexNorByIndex (vrts_unselected[i]));
-		currentVrtNors_unselected.Push (myMesh.GetVertexNorByIndex (vrts_unselected[i]));
+		vrtNors_unselected.Push (meshData.GetVertexNorByIndex (vrts_unselected[i]));
+		currentVrtNors_unselected.Push (meshData.GetVertexNorByIndex (vrts_unselected[i]));
 	}
 
 	/*for (int i = 0; i < vrts_overlapped.Num(); i++)
@@ -628,32 +621,16 @@ void AMyHarris3D::UpdateSelectedVertexLocation()
 				currentVrtLocs_postSelected [i] = actorLocation + offset;
 				currentVrtNors_postSelected [i] = actorRotation.RotateVector(vrtNors_postSelected [i]);
 
-				if (m_debugDraw == true && m_debugDraw_postSelected == true)
+				if (m_debugDraw == true)
 				{
-					/*if (myMesh.vertices[vrts_postSelected[i]].GetVertexType() == EVertexType::VERTEX_BUMP)
-						DrawDebugLine(GetWorld()
-						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Red, false, 0.1, 0, 1);
-					else if (myMesh.vertices[vrts_postSelected[i]].GetVertexType() == EVertexType::VERTEX_SINK)
-						DrawDebugLine(GetWorld()
-						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Green, false, 0.1, 0, 1);
-					else if (myMesh.vertices[vrts_postSelected[i]].GetVertexType() == EVertexType::VERTEX_FLAT)
-						DrawDebugLine(GetWorld()
-						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Orange, false, 0.1, 0, 1);
-					else
-						DrawDebugLine(GetWorld()
-						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Black, false, 0.1, 0, 1);*/
 					DrawDebugLine(GetWorld()
 						, currentVrtLocs_postSelected[i], currentVrtLocs_postSelected[i]+4*currentVrtNors_postSelected[i]
-						, FColorList::Red, false, 0.1, 0, 1);
+						, FColorList::Orange, false, 0.1, 0, 1);
 				}
 
 			}
 
-			for (int i = 0; i < vrtLocs_unselected.Num(); i++)
+			/*for (int i = 0; i < vrtLocs_unselected.Num(); i++)
 			{
 				//GEngine->AddOnScreenDebugMessage(-1, 2, FColor::Yellow, TEXT("OHa"));
 
@@ -664,11 +641,11 @@ void AMyHarris3D::UpdateSelectedVertexLocation()
 				currentVrtLocs_unselected [i] = actorLocation + offset;
 				currentVrtNors_unselected [i] = actorRotation.RotateVector(vrtNors_unselected [i]);
 
-				if (m_debugDraw == true && m_debugDraw_unselected == true)
+				if (m_debugDraw == true)
 					DrawDebugLine(GetWorld()
 						, currentVrtLocs_unselected[i], currentVrtLocs_unselected[i]+4*currentVrtNors_unselected[i]
 						, FColorList::Yellow, false, 0.1, 0, 1);
-			}
+			}*/
 
 			/*for (int i = 0; i < vrts_overlapped.size(); i++)
 			{
@@ -715,14 +692,6 @@ void AMyHarris3D::UpdateSelectedVertexLocation()
 		GetWorld()->GetTimerManager().ClearTimer(debugDrawWaitHandle);
 	}), WaitTime, true); //반복도 여기서 추가 변수를 선언해 설정가능
 }
-
-/*EVertexType AMyHarris3D::GetVertexTypeByIndex(int index)
-{
-	if (index < 0 || index >= vrts_postSelected.Num())
-		return EVertexType::NONE;
-
-	return vrtTypes_postSelected [index];
-}*/
 
 FVector AMyHarris3D::GetVertexLocationByIndex (int i)
 {

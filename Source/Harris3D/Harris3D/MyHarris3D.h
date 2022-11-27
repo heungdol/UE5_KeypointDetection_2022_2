@@ -8,6 +8,7 @@
 #include "MeshDescription.h"
 #include "MyMesh.h"
 #include "../MyUtil/KeypointDetectionBundle.h"
+#include "../MyUtil/VertexType.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -44,77 +45,83 @@ public:
 		
 	}
 
-	UFUNCTION(BlueprintCallable)
+	/*UFUNCTION(BlueprintCallable)
 	void UpdateHarris3D ();
 
 	UFUNCTION(BlueprintCallable)
-	bool GetIsUpdated ();
+	bool GetIsUpdated ();*/
 	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	bool m_update_first = false;
-
 public:
-	UPROPERTY(EditAnywhere, Category="Inspector")  
-	bool m_update_click = false;
-	
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	int m_ringSize = 5;
-
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	//bool m_type = false;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	double m_fraction = 0.01;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	double m_k = 0.04;
-
-	UPROPERTY (VisibleAnywhere)
-	UStaticMeshComponent* m_pMeshCom;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	bool m_nms = false;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	double m_nms_dist = 10;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	double m_nms_dot = 0.5f;
-
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	//double m_bumpSink_dot = 0.0f;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	double m_bumpSink_dot_flat = 0.5f;
-	
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	int m_bumpSink_ring = 3;
-	
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	bool m_debugDraw = false;
-
-	UPROPERTY(EditAnywhere, Category="Inspector")
-	bool m_debugDraw_postSelected = true;
-	
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	bool m_debugDraw_unselected = false;
-
-	//UPROPERTY(EditAnywhere, Category="Inspector")
-	//char* m_meshDir = ;
-	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	// ============================== default =======================================
+	
+	UPROPERTY (VisibleAnywhere)
+	UStaticMeshComponent* m_pMeshCom;
+	
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Default")
+	bool m_debugDraw = false;
 
-	int typeSelection;
-	double fraction_constant;
-	double k_parameter;
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Default")
+	bool m_update_click = false;
+
+	bool m_update_first = false;
+	
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Default")
+	EDetectorType m_detectorType = EDetectorType::DT_HR;
+	
+	// ============================ Harris 3D =====================================
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
+	int m_ringSize = 5;
+	
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
+	double m_fraction = 0.01;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
+	double m_k = 0.04;
+
+	// UPROPERTY(EditAnywhere, Category="Keypoint Detector: Harris 3D")
+	// int m_vertexType_depth = 5;
+
+	// ============================ HKS =====================================
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Heat Kernel Signature")
+	int m_t = 5;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Heat Kernel Signature")
+	int m_depth = 5;
+
+	// UPROPERTY(EditAnywhere, Category="Keypoint Detector: Heat Kernel Signature")
+	// int m_vertexType_depth = 5;
+
+	// ============================ Mesh Saliency =====================================
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Mesh Saliency")
+	double m_cutoffSaliency = 0.75;
+
+	// ============================ ISS =====================================
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_saliencyRaidus = 1;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_maxRadius = 10;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_gamma_21 = 0.975f;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	double m_gamma_32 = 0.975f;
+
+	UPROPERTY(EditAnywhere, Category="Keypoint Detector: Intrinsic Shape Signature")
+	int m_minNeighbors = 5;
 	
 	vector <int> vrts_selected;
-
-	//UPROPERTY(BlueprintReadOnly, Category="Inspector")
 	TArray <int> vrts_postSelected;
 	TArray <FVector> vrtLocs_postSelected;
 	TArray <FVector> vrtNors_postSelected;
@@ -124,6 +131,8 @@ public:
 	TArray <FVector> currentVrtNors_postSelected;
 	UPROPERTY(BlueprintReadOnly, Category="Inspector")
 	TArray <EVertexType> vrtTypes_postSelected;
+	UPROPERTY(BlueprintReadOnly, Category="Inspector")
+	TArray <EVertexNormalType> vrtNorTypes_postSelected;
 
 	TArray <int> vrts_unselected;
 	TArray <FVector> vrtLocs_unselected;
@@ -140,20 +149,9 @@ public:
 	FVector actorLocation;
 	FVector actorScale;
 	FRotator actorRotation;
-
-	MyMesh myMesh;
-	int ringSize;
-	vector<double> harrisRPoints;
-
-	KeypointDetectionBundle keypointDetectionBundle;
-
-	void InitMyHarris3D ();
-
-	void CalculateHarrisResponse();
-	void CalculateNMS ();
-	void CalculateVertexType ();
 	
-	bool GetIsLocalMaxima(unsigned int);
+	KeypointDetectionBundle keypointDetectionBundle;
+	MeshData meshData;
 	
 	FVector GetVertexLocationByIndex (int i);
 	FVector GetVertexNormalByIndex (int i);

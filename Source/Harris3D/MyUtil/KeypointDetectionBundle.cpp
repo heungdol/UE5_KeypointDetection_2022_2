@@ -40,34 +40,22 @@ void KeypointDetectionBundle::SetParameters_MeshSaliency(double cutoff)
 	m_cutoffSaliency = cutoff;
 }
 
-void KeypointDetectionBundle::InitKeypoints(UStaticMeshComponent* sm, EDetectorType dt, std::vector<int>& vrts_selected, TArray<int>& vrts_postSelected, TArray<FVector>& vrtLocs_postSelected
-                                            , TArray<FVector>& vrtNors_postSelected, TArray<EVertexType>& vrtTypes_postSelected, TArray<EVertexNormalType>& vrtNorTypes_postSelected)
+bool KeypointDetectionBundle::InitMesh(UStaticMeshComponent* sm, MeshData* md)
 {
-	mesh.Clear();
-	mesh = Mesh (sm);
-
-	meshData.Clear ();
-	MyUtil::ReadMeshWithoutOverwrap(sm, meshData);
-
-	myMesh = MyMesh (sm);
-
 	m_pMeshCom = sm;
 	
-	switch (dt)
-	{
-	case EDetectorType::DT_HR:
-		InitKeypoints_Harris(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected, vrtTypes_postSelected, vrtNorTypes_postSelected);
-		break;
-	case EDetectorType::DT_HKS:
-		InitKeypoints_HKS(vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected, vrtTypes_postSelected, vrtNorTypes_postSelected);
-		break;
-	case EDetectorType::DT_ISS:
-		InitKeypoints_ISS (vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected, vrtTypes_postSelected, vrtNorTypes_postSelected);
-		break;
-	case EDetectorType::DT_MS:
-		InitKeypoints_MeshSaliency (vrts_selected, vrts_postSelected, vrtLocs_postSelected, vrtNors_postSelected, vrtTypes_postSelected, vrtNorTypes_postSelected);
-		break;
-	}
+	mesh.Clear();
+	mesh = Mesh (sm);
+	bool ret = mesh.GetIsEnableModel();
+
+	meshData = md;
+	meshData->Clear ();
+	ret |= MyUtil::ReadMeshWithoutOverwrap(sm, *meshData);
+
+	myMesh = MyMesh (sm);
+	ret |= myMesh.GetIsEnableModel();
+
+	return ret;
 }
 
 void KeypointDetectionBundle::InitKeypoints_Harris(std::vector<int>& vrts_selected, TArray<int>& vrts_postSelected, TArray<FVector>& vrtLocs_postSelected
@@ -319,7 +307,7 @@ void KeypointDetectionBundle::InitKeypoints_ISS(std::vector<int>& vrts_selected,
 	vrts_selected.clear();
 	std::vector <int>().swap(vrts_selected);
 	
-	vrts_selected = ComputeISSKeypoints(meshData.positions, m_saliencyRaidus, m_maxRadius, m_gamma_21, m_gamma_32, m_minNeighbors);
+	vrts_selected = ComputeISSKeypoints(meshData->positions, m_saliencyRaidus, m_maxRadius, m_gamma_21, m_gamma_32, m_minNeighbors);
 
 	for (int ind : vrts_selected)
 	{

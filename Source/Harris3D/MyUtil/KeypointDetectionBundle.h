@@ -11,7 +11,7 @@ class KeypointDetectionBundle
 {
 public:
 	Mesh mesh;
-	MeshData meshData;
+	MeshData* meshData;
 	MyMesh myMesh;
 	UStaticMeshComponent* m_pMeshCom;
 	KDTreeFlann kdtree;
@@ -56,7 +56,8 @@ public:
 	void SetParameters_ISS (double saliencyRadius, double maxRadius, double gamma21, double gamma32, int minNeighbors);
 	void SetParameters_MeshSaliency (double cutoff);
 	
-	void InitKeypoints (UStaticMeshComponent*, EDetectorType, std::vector<int>&, TArray<int>&, TArray<FVector>&, TArray<FVector>&, TArray<EVertexType>&, TArray<EVertexNormalType>&);
+	bool InitMesh (UStaticMeshComponent*, MeshData*);
+
 	void InitKeypoints_Harris (std::vector<int>&, TArray<int>&, TArray<FVector>&, TArray<FVector>&, TArray<EVertexType>&, TArray<EVertexNormalType>&);
 	void InitKeypoints_HKS (std::vector<int>&, TArray<int>&, TArray<FVector>&, TArray<FVector>&, TArray<EVertexType>&, TArray<EVertexNormalType>&);
 	void InitKeypoints_ISS (std::vector<int>&, TArray<int>&, TArray<FVector>&, TArray<FVector>&, TArray<EVertexType>&, TArray<EVertexNormalType>&);
