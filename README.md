@@ -14,8 +14,9 @@ Various Game Character Animation using 3D Keypoint Detection: Focusing on Rock C
     - Intrinsic Shape Signature 
     - Mesh Saliency
 - 캡스톤디자인 프로젝트 수정 사항
-    - Procedural Animation: 횡단하는 암벽등반 모션 수정
+    - Procedural Animation
         - 기존 2022_1 캡스톤디자인 컨트롤러 활용
+        - https://github.com/heungdol/UE4_Harris3D_ProceduralAnimation 
 ## 실험  
   - 기준
     - 등반 벽 기울기
